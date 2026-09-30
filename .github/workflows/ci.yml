@@ -1,0 +1,43 @@
+name: VLAD OS · CI
+
+# Valide que le repo forké build toujours (Skills, vault, voice, HUD).
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci || npm install
+
+      - name: Vérifie la structure des 5 étapes
+        run: |
+          test -d skills  && echo "✓ Étape 1 — Skills"
+          test -d vault   && echo "✓ Étape 2 — Vault Obsidian"
+          test -d voice   && echo "✓ Étape 3 — Voice"
+          test -d ui      && echo "✓ Étape 4 — HUD V.A.U.L.T."
+          test -f setup.sh && echo "✓ Étape 5 — Bundle"
+
+      - name: Syntaxe du pont
+        run: for f in voice/*.js; do node --check "$f"; done
+
+      - name: Build du HUD (prod)
+        run: npm run build
+
+      - name: Upload du bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: vlad-hud-dist
+          path: ui/dist

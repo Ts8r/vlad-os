@@ -1,0 +1,47 @@
+# Dépendances
+node_modules/
+.venv/
+# Config locale (jamais commité)
+.env
+# Build
+ui/dist/
+dist/
+# Mémoire perso : on versionne les templates, pas tes vraies notes
+vault/inbox/*.md
+vault/processed/*.md
+vault/reports/*.md
+vault/archive/*.md
+!vault/**/template-*.md
+!vault/VAULT-README.md
+!vault/progress.md
+# OS / éditeurs
+.DS_Store
+*.log
+/tmp/
+
+# Documents fournis à VLAD (runtime)
+.uploads/
+.google-client.json
+.google-oauth.json
+
+# Caches / build
+__pycache__/
+
+# État runtime (marqueurs de dernier passage, "seen", chat/alertes)
+*-last
+.journal.json
+*seen.json
+.telegram-chat.json
+.tg-alerts.json
+
+# Données générées localement (non versionnées ; `git add -f` si tu veux les suivre)
+clients.json
+projects.json
+tracker.json
+
+# Disposition de l'accueil (widgets)
+layout.json
+# Rappels envoyés, rapport, agenda local (données perso)
+.rappels-sent.json
+.rapport.json
+agenda-local.json

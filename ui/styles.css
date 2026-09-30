@@ -1,0 +1,614 @@
+/* ═══════════════════════════════════════════════════════════════
+   VLAD OS — HUD « œil HAL » · palette unifiée bleu profond
+   Réfs : orbe verre/noyau bleu · onde vocale fine · widgets utiles
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  --bg: #edeef3;
+  --ink: #38406A;
+  --dim: #6e799d;
+  --blue: #4b6398;
+  --blue-soft: rgba(75, 99, 152, 0.10);
+  --blue-line: rgba(75, 99, 152, 0.30);
+  --core: #7e7ea9;
+  --warn: #c94f63;
+  --mono: "JetBrains Mono", "SF Mono", ui-monospace, monospace;
+  --sans: "Space Grotesk", -apple-system, "Segoe UI", sans-serif;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body, #root { height: 100%; }
+body {
+  background: linear-gradient(-45deg, #8691b3, #edeef3);   /* dégradé du CodePen (œil blanc) */
+  color: var(--ink);
+  font-family: var(--sans);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Grille générale ─────────────────────────────────────────── */
+.stage {
+  height: 100%;
+  display: grid;
+  grid-template-columns: 300px 1fr 300px;
+  grid-template-rows: auto 1fr auto;
+  grid-template-areas: "top top top" "left center right" "dock dock dock";
+  gap: 14px;
+  padding: 18px 22px;
+  position: relative;   /* ancre de l'onde vocale absolue */
+}
+
+/* ── En-tête ─────────────────────────────────────────────────── */
+/* l'en-tête chevauche la colonne droite (qui démarre en haut) : sa boîte laisse passer les
+   clics, seuls ses enfants (horloge, marque, boutons) les prennent, au-dessus des colonnes */
+.topbar { grid-area: top; position: relative; z-index: 3; pointer-events: none; display: flex; align-items: center; justify-content: space-between; }
+.topbar > * { pointer-events: auto; }
+/* l'horloge se centre sur l'ÉCRAN, pas entre brand et bouton (largeurs inégales) */
+.topbar .clock { position: absolute; left: 50%; transform: translateX(-50%); }
+.topbar .brand-center { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); font-size: 26px; letter-spacing: 11px; }
+.topbar { align-items: flex-start; }
+.topbar .topbtns { margin-top: 10px; }
+.brand-txt { font-family: var(--mono); font-size: 20px; letter-spacing: 8px; color: #4b5a7a; }
+.brand-dot { color: var(--blue); }
+.clock { text-align: center; }
+.clock-time {
+  font-family: var(--mono); font-size: 34px; letter-spacing: 6px; color: var(--ink);
+  text-shadow: 0 2px 14px rgba(56, 64, 106, 0.35);
+}
+.clock-date { font-size: 12px; letter-spacing: 3px; text-transform: uppercase; color: var(--dim); margin-top: 2px; }
+.vault-btn {
+  background: var(--blue-soft); color: var(--blue); border: 1px solid var(--blue-line);
+  font-family: var(--mono); font-size: 12px; letter-spacing: 3px;
+  padding: 10px 18px; border-radius: 8px; cursor: pointer; transition: all .25s;
+}
+.vault-btn:hover { box-shadow: 0 0 18px rgba(75, 99, 152, 0.35); background: rgba(75, 99, 152, 0.22); }
+
+/* ── Colonnes / widgets ──────────────────────────────────────── */
+/* z-index : les colonnes passent AU-DESSUS du halo de l'œil — les bulles du
+   journal restent lisibles même quand la lueur déborde sous les cartes */
+.col { display: flex; flex-direction: column; gap: 14px; min-height: 0; position: relative; z-index: 2; }
+.col.left { overflow-y: auto; scrollbar-width: none; }   /* Agenda+Tâches+Skills > écran court */
+.col.right { overflow-y: auto; scrollbar-width: none; grid-column: 3; grid-row: 1 / 3; padding-top: 62px; }   /* démarre sous les boutons de pages, raccord avec l'horloge à gauche */
+.col.left { grid-area: left; }
+/* le journal ne descend plus jusqu'au dock : hauteur bornée (bas ≈ widget Raccourcis) */
+/* Journal AUTONOME : suit son contenu jusqu'au plafond, puis défile à
+   l'intérieur — indépendant des colonnes voisines, repliable librement */
+.col.left .widget.grow { flex: none; max-height: min(46vh, 520px); }   /* laisse l'Agenda visible sous le journal */
+.col.left .widget:not(.grow) { flex: none; }
+.widget {
+  background: rgba(255, 255, 255, 0.45);
+  border: 1px solid rgba(75, 99, 152, 0.16);
+  border-radius: 12px;
+  padding: 14px 16px;
+  backdrop-filter: blur(8px);
+  box-shadow: inset 0 0 24px rgba(75, 99, 152, 0.04);
+}
+.widget.grow { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+.widget h3 {
+  font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+  color: #5a6b94; margin-bottom: 10px; font-weight: 600;
+}
+.dim { color: var(--dim); font-size: 12px; }
+
+/* Projets (dossiers business — clic = Finder) */
+.proj {
+  display: flex; align-items: center; gap: 8px; width: 100%;
+  background: rgba(75, 99, 152, 0.05); border: 1px solid rgba(75, 99, 152, 0.12);
+  color: var(--ink); border-radius: 7px; padding: 6px 10px; margin-bottom: 5px;
+  cursor: pointer; font-size: 12.5px; transition: all .2s; font-family: var(--sans); text-align: left;
+}
+.proj:hover { background: rgba(75, 99, 152, 0.14); border-color: var(--blue); }
+.proj-dot { width: 6px; height: 6px; border-radius: 50%; background: #c3c9da; flex: none; }
+.proj-dot.on { background: #2fae72; box-shadow: 0 0 5px rgba(47, 174, 114, 0.7); }
+.proj-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.proj i { font-style: normal; font-size: 10px; color: var(--dim); white-space: nowrap; }
+
+/* Tâches */
+.w-input {
+  width: 100%; background: rgba(75, 99, 152, 0.06); border: 1px solid var(--blue-line);
+  color: var(--ink); border-radius: 7px; padding: 7px 10px; font-size: 13px; outline: none;
+  margin-bottom: 8px; font-family: var(--sans);
+}
+.w-input::placeholder { color: var(--dim); }
+.todos { max-height: 180px; overflow-y: auto; }
+.todo {
+  display: flex; align-items: center; gap: 8px; padding: 6px 8px; margin-bottom: 5px;
+  background: rgba(75, 99, 152, 0.05); border: 1px solid rgba(75, 99, 152, 0.12);
+  border-radius: 6px; font-size: 13px;
+}
+.todo span { flex: 1; }
+.todo.done span { opacity: 0.4; text-decoration: line-through; }
+.todo button {
+  background: none; border: 1px solid var(--blue-line); color: var(--blue);
+  border-radius: 4px; width: 20px; height: 20px; cursor: pointer; font-size: 11px; line-height: 1;
+}
+
+/* Skills */
+.skill {
+  display: flex; justify-content: space-between; align-items: baseline; width: 100%;
+  background: rgba(75, 99, 152, 0.05); border: 1px solid rgba(75, 99, 152, 0.12);
+  color: var(--ink); border-radius: 7px; padding: 8px 12px; margin-bottom: 6px;
+  cursor: pointer; font-size: 13px; transition: all .2s; font-family: var(--sans);
+}
+.skill i { font-style: normal; font-size: 11px; color: var(--dim); }
+.skill:hover { background: rgba(75, 99, 152, 0.14); border-color: var(--blue); }
+
+/* Journal — façon messagerie : TOI à droite (bulle indigo), VLAD à gauche (bulle claire) */
+.journal { flex: 1; overflow-y: auto; min-height: 0; font-size: 13px; line-height: 1.5; display: flex; flex-direction: column; }
+.jmsg {
+  max-width: 88%; padding: 8px 11px; margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(56, 64, 106, 0.08);
+}
+.jmsg b { display: block; font-size: 9px; letter-spacing: 2px; margin-bottom: 3px; }
+.jmsg.vlad {
+  align-self: flex-start;
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(75, 99, 152, 0.14);
+  border-radius: 12px 12px 12px 4px;
+}
+.jmsg.vlad b { color: var(--blue); }
+.jmsg.you {
+  align-self: flex-end;
+  background: rgba(75, 99, 152, 0.22);         /* même famille, un cran plus soutenu */
+  border: 1px solid rgba(75, 99, 152, 0.28);
+  border-radius: 12px 12px 4px 12px;
+}
+.jmsg.you b { color: #38406A; }
+
+/* Jauges (réelles) */
+.gauge { margin-bottom: 9px; }
+.gauge-head {
+  display: flex; justify-content: space-between; font-family: var(--mono);
+  font-size: 10px; letter-spacing: 2px; color: var(--dim); margin-bottom: 4px;
+}
+.gauge-head b { color: var(--ink); font-weight: 500; }
+.gauge-rail {
+  height: 6px; border: 1px solid var(--blue-line); border-radius: 3px;
+  background: rgba(75, 99, 152, 0.05); overflow: hidden;
+}
+.gauge-fill {
+  height: 100%; background: linear-gradient(90deg, rgba(75,99,152,.5), var(--blue));
+  box-shadow: 0 0 8px rgba(75, 99, 152, 0.6); border-radius: 2px;
+  transition: width 1.2s cubic-bezier(.3,.9,.3,1);
+}
+.gauge.warn .gauge-fill { background: linear-gradient(90deg, rgba(255,93,115,.5), var(--warn)); box-shadow: 0 0 8px rgba(255,93,115,.6); }
+.gauge.warn .gauge-head b { color: var(--warn); }
+.sys-row { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--dim); margin: 10px 0 4px; }
+.led { width: 7px; height: 7px; border-radius: 50%; background: #c3c9da; margin-left: 8px; }
+.led:first-child { margin-left: 0; }
+.led.on { background: #2fae72; box-shadow: 0 0 6px rgba(47,174,114,.7); }
+.sys-meta { font-family: var(--mono); font-size: 10px; color: var(--dim); letter-spacing: 1px; margin-top: 3px; }
+
+/* ── Centre : œil HAL ────────────────────────────────────────── */
+.center {
+  /* colonne centrale sur les DEUX rangées (en-tête + corps) : l'œil se centre sur
+     toute la hauteur au-dessus du dock, quelle que soit la hauteur de l'horloge */
+  grid-column: 2; grid-row: 1 / 3; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px; min-height: 0;
+}
+/* étiquette d'état (réf. image 1 : ASSISTANT IA / EN REPOS) */
+.hal-label { text-align: center; }
+.hal-label-top { display: block; font-size: 12px; letter-spacing: 6px; color: #7a84a6; }
+.hal-label-state {
+  display: block; margin-top: 6px; font-size: 15px; letter-spacing: 7px; color: var(--ink);
+  text-shadow: 0 1px 10px rgba(255, 255, 255, 0.8);
+}
+/* bouton réveil / mise en veille */
+.wake-btn {
+  margin-top: 12px;
+  background: rgba(255, 255, 255, 0.5); color: var(--ink);
+  border: 1px solid var(--blue-line); border-radius: 20px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 3px;
+  padding: 9px 22px; cursor: pointer; transition: all .3s;
+  backdrop-filter: blur(6px);
+}
+.wake-btn:hover { background: rgba(255, 255, 255, 0.8); box-shadow: 0 4px 18px rgba(56, 64, 106, 0.25); }
+
+/* groupe œil+étiquette+bouton : recentré sur l'ÉCRAN, toujours et exactement
+   (règle : œil et onde SACRÉS — c'est le reste qui s'adapte).
+   -147px = (colonnes gauches − colonne droite) / 2 pour CETTE grille ; chaque
+   breakpoint recalcule sa compensation pour rester pile au centre écran. */
+.eyegroup { display: flex; flex-direction: column; align-items: center; gap: 8px; transform: none; }   /* grille symétrique : aucune compensation */
+
+/* onde vocale : PLEINE largeur, sous toutes les cartes, au-dessus du dock */
+.wave-zone {
+  position: absolute; left: 50%; transform: translateX(-50%); bottom: 102px;
+  width: min(1240px, 68vw);                          /* longueur d'origine : la zone centrale */
+  height: 64px; z-index: -1; pointer-events: none;   /* derrière les cartes, jamais gênante */
+}
+.waveline { width: 100%; height: 100%; display: block; }
+
+/* ── Dock bas ────────────────────────────────────────────────── */
+.dock { grid-area: dock; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+.attachments { display: flex; gap: 8px; }
+.attach-chip {
+  background: var(--blue-soft); border: 1px solid var(--blue-line); border-radius: 14px;
+  padding: 3px 10px; font-size: 12px;
+}
+.attach-chip button { background: none; border: none; color: var(--dim); cursor: pointer; margin-left: 5px; }
+.chatbar { display: flex; gap: 10px; width: min(760px, 92%); }
+.chatbar .mic, .chatbar .attach, .chatbar .send {
+  width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--blue-line);
+  background: var(--blue-soft); color: var(--blue); font-size: 17px; cursor: pointer; transition: all .2s;
+}
+.chatbar .mic.live { border-color: var(--warn); color: var(--warn); box-shadow: 0 0 16px rgba(255,93,115,.5); }
+/* mains libres actif : vert calme (écoute permanente, pas une prise en cours) */
+.chatbar .mic.hf { font-size: 20px; font-family: var(--mono); }
+.chatbar .mic.expo { font-size: 18px; }
+.chatbar .mic.hf.live {
+  border-color: #2fae72; color: #2fae72;
+  box-shadow: 0 0 14px rgba(47, 174, 114, 0.45);
+  animation: hf-breathe 2.6s ease-in-out infinite;
+}
+@keyframes hf-breathe { 0%, 100% { box-shadow: 0 0 8px rgba(47,174,114,.3); } 50% { box-shadow: 0 0 18px rgba(47,174,114,.6); } }
+.chatbar .mic:hover, .chatbar .attach:hover, .chatbar .send:hover { box-shadow: 0 0 14px rgba(75,99,152,.4); }
+.chat-in {
+  flex: 1; background: rgba(255, 255, 255, 0.55); border: 1px solid var(--blue-line);
+  color: var(--ink); border-radius: 10px; padding: 0 18px; font-size: 14px; outline: none;
+  font-family: var(--sans);
+}
+.chat-in::placeholder { color: var(--dim); }
+.chat-in:focus { border-color: var(--blue); box-shadow: 0 0 16px rgba(75, 99, 152, 0.2); }
+.voicebar { display: flex; gap: 8px; align-items: center; }
+.vb-toggle, .vb-test {
+  background: none; border: 1px solid rgba(75,99,152,.2); color: var(--dim);
+  border-radius: 7px; padding: 4px 10px; font-size: 11px; cursor: pointer; letter-spacing: 1px;
+}
+.vb-toggle.on { color: var(--warn); border-color: rgba(255,93,115,.4); }
+.vb-voice {
+  background: rgba(255,255,255,.7); color: var(--ink); border: 1px solid rgba(75,99,152,.2);
+  border-radius: 7px; padding: 4px 8px; font-size: 11px; outline: none;
+}
+
+/* ── Scrollbars ──────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 7px; }
+::-webkit-scrollbar-track { background: rgba(75, 99, 152, 0.04); }
+::-webkit-scrollbar-thumb { background: rgba(75, 99, 152, 0.22); border-radius: 4px; }
+
+/* ── Vault plein écran (graphe neuronal — layout reconstruit) ── */
+.vault-overlay { position: fixed; inset: 0; background: #020409; z-index: 50; }
+.vault-canvas { position: absolute; inset: 0; }
+.vault-canvas canvas { display: block; }
+.vault-tags { position: absolute; inset: 0; pointer-events: none; }
+/* étiquettes de départements : positionnées en left/top par le JS chaque frame */
+.vault-tag {
+  position: absolute; transform: translate(-50%, -100%);
+  font-family: var(--mono); font-size: 11px; letter-spacing: 2.5px; white-space: nowrap;
+  text-shadow: 0 0 10px currentColor, 0 0 24px rgba(0,0,0,.9); pointer-events: none;
+}
+.vault-tag.core { font-size: 13px; letter-spacing: 5px; }
+/* libellé au survol d'une pointe (fichier / commande) */
+.vault-label {
+  position: absolute; transform: translate(-50%, -100%); display: none;
+  background: rgba(8, 16, 26, 0.92); border: 1px solid var(--blue-line); border-radius: 6px;
+  padding: 4px 9px; font-family: var(--mono); font-size: 11px; color: var(--ink);
+  white-space: nowrap; pointer-events: none; z-index: 3;
+}
+.vault-head {
+  position: absolute; top: 22px; left: 28px; display: flex; flex-direction: column; gap: 5px;
+}
+.vault-title { font-family: var(--mono); font-size: 13px; letter-spacing: 5px; color: #4b5a7a; }
+.vault-counts { font-family: var(--mono); font-size: 10px; letter-spacing: 1.5px; color: var(--dim); }
+.vault-refresh, .vault-close {
+  position: absolute; top: 20px; width: 38px; height: 38px; border-radius: 9px;
+  background: rgba(75, 99, 152, 0.10); border: 1px solid var(--blue-line); color: var(--blue);
+  font-size: 15px; cursor: pointer; transition: all .2s; z-index: 2;
+}
+.vault-refresh { right: 76px; }
+.vault-close { right: 26px; }
+.vault-refresh:hover, .vault-close:hover { background: rgba(75, 99, 152, 0.22); box-shadow: 0 0 14px rgba(75,99,152,.4); }
+.vault-panel {
+  position: absolute; right: 26px; top: 76px; width: 320px; max-height: 70vh;
+  display: flex; flex-direction: column;
+  background: rgba(8, 16, 26, 0.92); border: 1px solid var(--blue-line); border-radius: 12px;
+  backdrop-filter: blur(10px); overflow: hidden; z-index: 2;
+}
+.vault-panel-head {
+  display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+  font-size: 12px; letter-spacing: 3px; text-transform: uppercase;
+  border-bottom: 1px solid rgba(75, 99, 152, 0.14);
+}
+.vault-panel-head span:first-child { flex: 1; }
+.vault-panel-n { opacity: .6; font-family: var(--mono); }
+.vault-panel-head button { background: none; border: none; color: var(--dim); cursor: pointer; font-size: 13px; }
+.vault-panel-list { overflow-y: auto; padding: 10px 14px; }
+.vault-item { padding: 7px 0; border-bottom: 1px solid rgba(75, 99, 152, 0.07); font-size: 12px; }
+.vault-item b { display: block; color: var(--ink); font-weight: 500; }
+.vault-item span { color: var(--dim); font-size: 11px; }
+.vault-cmd { font-family: var(--mono); color: var(--blue); font-size: 11px; }
+
+/* ── Agenda + journal réductible ─────────────────────────────── */
+.cal-month { font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; color: var(--blue); margin-bottom: 6px; }
+.cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 8px; }
+.cal-dow { font-size: 9px; color: var(--dim); text-align: center; letter-spacing: 1px; }
+.cal-day {
+  position: relative; font-size: 10.5px; text-align: center; padding: 3px 0;
+  color: var(--ink); border-radius: 5px; font-family: var(--mono);
+}
+.cal-day.today { background: var(--blue); color: #fff; box-shadow: 0 2px 8px rgba(75, 99, 152, 0.45); }
+.cal-day.has::after {
+  content: ""; position: absolute; left: 50%; bottom: -1px; transform: translateX(-50%);
+  width: 3px; height: 3px; border-radius: 50%; background: var(--blue);
+}
+.cal-day.today.has::after { background: #fff; bottom: 1px; }
+.cal-ev { display: flex; gap: 10px; align-items: baseline; padding: 5px 0; border-bottom: 1px solid rgba(75, 99, 152, 0.08); font-size: 12px; }
+.cal-when { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--blue); white-space: nowrap; }
+.cal-title { color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+/* étiquette de provenance (école, perso…) — le calendrier pro n'en porte pas */
+.cal-src { font-family: var(--mono); font-size: 9px; letter-spacing: 1px; text-transform: uppercase; color: var(--blue); background: rgba(75, 99, 152, 0.12); border-radius: 4px; padding: 1px 5px; margin-right: 6px; vertical-align: 1px; }
+.widget .w-head { display: flex; justify-content: space-between; align-items: center; }
+.w-fold {
+  background: none; border: 1px solid var(--blue-line); color: var(--blue);
+  border-radius: 5px; width: 20px; height: 20px; line-height: 1; cursor: pointer; font-size: 13px;
+}
+.w-fold:hover { background: rgba(255, 255, 255, 0.6); }
+.w-btns { display: inline-flex; gap: 6px; }
+.w-btns .w-fold:first-child { font-size: 10px; }   /* 🗑 un cran plus petit */
+
+/* ═══ PLEIN ÉCRAN MACBOOK (1501–1780px) : l'œil garde SA taille et SON centre
+   écran — ce sont les colonnes qui rétrécissent pour lui laisser la place ═══ */
+@media (max-width: 1780px) and (min-width: 1501px) {
+  .stage { grid-template-columns: 250px minmax(0, 1fr) 250px; }
+  /* grille symétrique (journal dans la pile de gauche) : le centre de la colonne = le centre écran */
+  .eyegroup { transform: none; }
+  .center { min-width: 0; }
+}
+
+/* ═══ FENÊTRE RÉDUITE (1021–1500px) : adaptation CONTINUE — colonnes élastiques,
+   œil recentré dans SA colonne (le décalage écran-centre n'a de sens qu'en plein
+   écran : réduit + overflow hidden, il coupait « Mettre en veille » — vécu 16/09)
+   et mis à l'échelle en continu ; ses marges absorbent la place libérée ═══ */
+@media (max-width: 1500px) and (min-width: 1021px) {
+  .stage { grid-template-columns: clamp(195px, 16vw, 250px) minmax(0, 1fr) clamp(195px, 16vw, 250px); gap: 10px; padding: 14px 16px; }
+  .eyegroup { transform: none; --es: min(0.8, max(0.52, calc((100vw - 560px) / 1200))); }
+  .center { min-width: 0; overflow: hidden; }
+  .vlad-eye { transform: scale(var(--es)); margin-block: calc(-250px * (1 - var(--es))); }
+  .clock-time { font-size: 26px; letter-spacing: 4px; }
+  .wave-zone { margin-top: 18px; }
+}
+
+/* ═══ FENÊTRE ÉTROITE (761–1020px) : 3 pistes, journal borné pour laisser
+   l'agenda visible dans la pile de gauche ═══ */
+@media (max-width: 1020px) and (min-width: 761px) {
+  .stage {
+    grid-template-columns: clamp(180px, 24vw, 240px) minmax(0, 1fr) clamp(190px, 24vw, 240px);
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas: "top top top" "left center right" "dock dock dock";
+    gap: 10px; padding: 12px 14px;
+  }
+  .col, .center { min-width: 0; }
+  .center { overflow: hidden; }
+  .eyegroup { transform: none; }
+  .vlad-eye { transform: scale(0.5); margin-block: -125px; }
+  .col.left .widget.grow { max-height: 300px; }
+  .clock-time { font-size: 22px; letter-spacing: 3px; }
+  .brand-txt { font-size: 16px; letter-spacing: 5px; }
+  .vault-btn { padding: 8px 12px; font-size: 11px; }
+  .wave-zone { margin-top: 12px; }
+}
+
+/* ═══ MOBILE (iPhone) — pile verticale : œil compact, barre collée en bas ═══ */
+@media (max-width: 760px) {
+  html, body, #root { height: auto; }
+  body { overflow: auto; }
+  body { overflow-x: hidden; }
+  /* PWA plein écran : ne pas passer sous l'encoche */
+  .stage { padding-top: calc(12px + env(safe-area-inset-top)); }
+  .stage {
+    grid-template-columns: minmax(0, 1fr);   /* la boule (500px) ne doit pas élargir la page */
+    grid-template-areas: "top" "center" "left" "right" "dock";
+    gap: 10px; padding: 12px 14px 96px;   /* place pour le dock fixe */
+    height: auto;
+  }
+  .col, .center { min-width: 0; }
+  .center { overflow: hidden; grid-area: center; }   /* mobile : rangée dédiée sous l'en-tête */
+  .topbar { flex-wrap: wrap; gap: 4px; }
+  .topbar .clock { position: static; transform: none; order: 3; width: 100%; margin-top: 2px; }
+  .topbar .brand-center { position: static; transform: none; }
+  .clock-time { font-size: 24px; letter-spacing: 4px; }
+  .brand-txt { font-size: 15px; letter-spacing: 5px; }
+  .vault-btn { padding: 8px 12px; font-size: 11px; }
+
+  .center { gap: 4px; }
+  .eyegroup { transform: none; }
+  .vlad-eye { transform: scale(0.52); margin: -115px 0; }
+  .hal-label-top { font-size: 10px; letter-spacing: 4px; }
+  .hal-label-state { font-size: 12px; letter-spacing: 4px; }
+  .wake-btn { margin-top: 8px; padding: 8px 18px; font-size: 10px; }
+  .wave-zone { position: static; width: 100%; height: 48px; transform: none; }
+
+  .col.left { overflow: visible; }
+  .widget.grow { flex: none; }
+  .journal { max-height: 220px; }
+
+  /* dock fixé en bas, comme une app */
+  .dock {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+    padding: 10px 12px calc(10px + env(safe-area-inset-bottom));
+    background: rgba(237, 238, 243, 0.85); backdrop-filter: blur(14px);
+    border-top: 1px solid var(--blue-line);
+  }
+  .chatbar { width: 100%; }
+  .chatbar .mic, .chatbar .attach, .chatbar .send { width: 40px; height: 40px; flex: none; }
+  .chatbar { gap: 6px; }
+  /* ⚠️ iOS zoome sur tout input < 16px : taille imposée */
+  .chat-in { min-width: 0; font-size: 16px; }
+  .w-input { font-size: 16px; }
+  /* cibles tactiles ≥ 32px */
+  .w-fold { width: 28px; height: 28px; font-size: 15px; }
+  .todo button { width: 28px; height: 28px; }
+  .voicebar { display: none; }              /* le coupe-son vit dans la page, pas sur mobile */
+}
+
+/* Vault sur mobile : scène réduite, panneaux latéraux masqués (l'essentiel = le graphe) */
+@media (max-width: 760px) {
+  .vo-stage { transform: scale(0.42); }
+  .vo-side { display: none; }
+  .vo-rail { display: none; }
+  .vo-brand { font-size: 16px; letter-spacing: 4px; }
+}
+
+/* Mails (tri automatique) */
+.mail-meta { font-family: var(--mono); font-size: 10px; letter-spacing: 1px; color: var(--dim); margin-bottom: 7px; }
+.mail-row {
+  padding: 6px 9px; margin-bottom: 5px; border-left: 2px solid var(--blue-line);
+  background: rgba(75, 99, 152, 0.05); border-radius: 0 6px 6px 0; font-size: 12px;
+}
+.mail-row b { display: block; font-size: 10px; letter-spacing: 1px; color: var(--blue); margin-bottom: 1px; }
+.mail-row span { color: var(--ink); display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mail-row.hot { border-left-color: var(--warn); }
+.mail-row.hot b { color: var(--warn); }
+
+/* Boutons d'action des widgets */
+.mail-meta .led { display: inline-block; width: 7px; height: 7px; border-radius: 50%; margin: 0 6px 1px 0; vertical-align: middle; }
+.reu-actions { display: flex; gap: 6px; margin-bottom: 8px; }
+.reu-btn { flex: 1; white-space: nowrap; border: 1px solid var(--blue-line); background: rgba(75, 99, 152, 0.10); color: var(--blue); font-family: var(--mono); font-size: 9.5px; letter-spacing: 1px; padding: 6px 6px; border-radius: 8px; cursor: pointer; transition: all .25s; }
+.reu-btn:hover { background: rgba(75, 99, 152, 0.22); box-shadow: 0 0 12px rgba(75, 99, 152, 0.25); }
+.reu-btn.rec { color: #b23b3b; border-color: rgba(178, 59, 59, 0.35); }
+.reu-row { cursor: pointer; }
+.reu-part { display: block; font-style: normal; font-size: 10px; color: var(--dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.reu-lien { display: block; background: none; border: none; padding: 0; margin-top: 3px; font-family: var(--mono); font-size: 9.5px; letter-spacing: 1px; color: var(--blue); cursor: pointer; }
+
+/* ═══ Onglets mobiles (Assistant / Tableau) — masqués sur desktop ═══ */
+.mobtabs { display: none; }
+@media (max-width: 760px) {
+  .mobtabs {
+    display: flex; gap: 6px; width: 100%; margin-bottom: 8px;
+    background: rgba(75, 99, 152, 0.08); border-radius: 12px; padding: 4px;
+  }
+  .mobtabs button {
+    flex: 1; padding: 8px 0; border: none; border-radius: 9px; cursor: pointer;
+    font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
+    background: transparent; color: var(--dim);
+  }
+  .mobtabs button.on {
+    background: rgba(255, 255, 255, 0.85); color: var(--ink);
+    box-shadow: 0 2px 8px rgba(56, 64, 106, 0.15);
+  }
+
+  /* UNE seule page qui défile  : œil + dialogue, puis
+     TOUTES les cartes ; les onglets Assistant / Tableau ne font que sauter dedans */
+  .stage .vlad-eye { transform: scale(0.36); margin: -158px 0 -148px; }
+  .stage .hal-label-top { display: none; }
+  .stage .hal-label-state { font-size: 10px; letter-spacing: 3px; margin-top: 0; }
+  .stage .wake-btn { margin-top: 4px; padding: 6px 14px; font-size: 9px; }
+  .stage .wave-zone { display: none; }
+  .stage .col.left .widget.grow { max-height: 46vh; }
+  .col.right { grid-area: right; padding-top: 0; padding-bottom: 0; }   /* mobile : rangée dédiée */
+
+  /* en-tête : horloge compacte à gauche, V.L.A.D. centré à côté, pages en dessous */
+  .topbar { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 10px; row-gap: 10px; }
+  .topbar .brand-center { position: static; transform: none; justify-self: center; font-size: 22px; letter-spacing: 8px; }
+  .topbar .topbtns { grid-column: 1 / -1; margin-top: 0; }
+  .topbtns .vault-btn { flex: 1; padding: 9px 0; font-size: 10px; letter-spacing: 2px; }
+  .widget h3 { font-size: 10.5px; letter-spacing: 3px; }
+}
+
+/* ── boutons de la barre haute (Progrès + Vault) ── */
+.topbtns { display: flex; gap: 8px; }
+/* ── widget Aujourd'hui (résumé Progrès) ── */
+.pw-head { display: flex; align-items: center; gap: 12px; cursor: pointer; padding: 2px 4px 10px; }
+.pw-head:hover .pw-open { color: var(--blue); }
+.pw-n { font-size: 18px; font-weight: 300; }
+.pw-open { margin-left: auto; font-size: 18px; color: #9aa3bd; transition: color .2s; }
+.pw-habits { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.pw-hab { font-size: 10.5px; padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(75,99,152,.22); background: rgba(75,99,152,.05); color: var(--dim); cursor: pointer; font-family: var(--sans); }
+.pw-hab.on { background: var(--blue); border-color: var(--blue); color: #fff; }
+@media (max-width: 760px) { .topbtns .vault-btn { padding: 8px 10px; font-size: 10px; letter-spacing: 2px; } }
+.pw-group { margin-top: 8px; }
+.pw-gname { font-family: var(--mono); font-size: 8.5px; letter-spacing: 2.5px; text-transform: uppercase; color: #7a84a6; margin-bottom: 4px; }
+.pw-habits { margin-top: 0; }
+.pw-url { color: var(--blue); text-decoration: none; margin-left: 6px; }
+
+/* bandeau « session Cloudflare Access expirée » (iPhone) */
+.acces-banniere { position: fixed; top: calc(env(safe-area-inset-top) + 10px); left: 50%; transform: translateX(-50%); z-index: 90;
+  background: #c94f63; color: #fff; border: 0; border-radius: 999px; padding: 10px 18px; font-family: var(--sans); font-size: 13px;
+  box-shadow: 0 8px 24px rgba(201,79,99,.35); cursor: pointer; max-width: calc(100vw - 32px); }
+.acces-banniere.douce { background: #4b6398; text-decoration: none; text-align: center; box-shadow: 0 8px 24px rgba(75,99,152,.35); }
+
+/* ═══ BIBLIOTHÈQUE DE WIDGETS (⊞ WIDGETS) ═══════════════════════ */
+.vault-btn.on { background: var(--blue); color: #fff; }
+/* mode édition : cartes réduites à leur en-tête, déplaçables */
+.stage.editing .widget.w-editing { cursor: grab; border-style: dashed; border-color: var(--blue-line); }
+.stage.editing .widget.w-editing:active { cursor: grabbing; }
+.stage.editing .col.left .widget.grow { flex: none; }
+.w-drag { font-size: 10px; letter-spacing: 1px; margin-top: -4px; }
+.w-del { color: var(--warn); border-color: rgba(201, 79, 99, 0.35); }
+.w-ajout {
+  border: 1px dashed var(--blue-line); background: rgba(255, 255, 255, 0.25); color: var(--blue);
+  border-radius: 12px; padding: 14px; font-family: var(--mono); font-size: 11px; letter-spacing: 2px;
+  cursor: pointer; flex: none; transition: all .2s;
+}
+.w-ajout:hover { background: rgba(255, 255, 255, 0.55); }
+
+.bib-fond { position: fixed; inset: 0; z-index: 50; background: rgba(56, 64, 106, 0.28); backdrop-filter: blur(6px);
+  display: flex; align-items: center; justify-content: center; padding: 16px; }
+.bib { width: min(860px, 100%); max-height: 88vh; overflow-y: auto; background: rgba(237, 238, 243, 0.96);
+  border: 1px solid var(--blue-line); border-radius: 16px; padding: 22px 24px; box-shadow: 0 24px 60px rgba(56, 64, 106, 0.3); }
+.bib-tete { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 6px; }
+.bib-titre { font-family: var(--mono); font-size: 13px; letter-spacing: 4px; text-transform: uppercase; color: var(--ink); margin-bottom: 4px; }
+.bib-cat { font-size: 10px; letter-spacing: 4px; text-transform: uppercase; color: #5a6b94; margin: 18px 0 8px; font-weight: 600; }
+.bib-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 10px; }
+.bib-carte { display: flex; gap: 10px; align-items: flex-start; background: rgba(255, 255, 255, 0.55);
+  border: 1px solid rgba(75, 99, 152, 0.16); border-radius: 12px; padding: 12px; }
+.bib-carte.on { border-color: var(--blue); box-shadow: inset 0 0 0 1px rgba(75, 99, 152, 0.15); }
+.bib-ic { width: 32px; height: 32px; flex: none; display: grid; place-items: center; border-radius: 8px;
+  background: var(--blue-soft); color: var(--blue); font-size: 16px; }
+.bib-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.bib-txt b { font-size: 13px; color: var(--ink); }
+.bib-txt span { font-size: 11.5px; color: var(--dim); line-height: 1.35; }
+.bib-txt em { font-style: normal; font-family: var(--mono); font-size: 9.5px; letter-spacing: .5px; color: #b0721e; }
+.bib-btn { flex: none; align-self: center; border: 1px solid var(--blue); background: var(--blue); color: #fff;
+  border-radius: 7px; padding: 6px 10px; font-size: 11px; cursor: pointer; font-family: var(--sans); }
+.bib-btn.off { background: transparent; color: var(--blue); border-color: var(--blue-line); }
+.bib-reset { margin-top: 18px; background: none; border: none; color: var(--dim); font-size: 11px; text-decoration: underline; cursor: pointer; }
+
+/* réglages ⚙ d'un widget */
+.w-reglages { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; }
+.w-area { resize: vertical; font-family: var(--mono); font-size: 11.5px; margin-bottom: 0; }
+.w-reglages .reu-btn { align-self: flex-start; flex: none; }
+.proj-dot.ko { background: var(--warn); box-shadow: 0 0 5px rgba(201, 79, 99, 0.7); }
+a.proj { text-decoration: none; }
+a.rss-item { display: block; text-decoration: none; color: inherit; cursor: pointer; }
+.rss-onglets { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 8px; }
+
+/* météo */
+.met-now { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+.met-now b { font-family: var(--mono); font-size: 28px; color: var(--ink); font-weight: 500; }
+.met-ic { font-size: 24px; align-self: center; }
+.met-ic.sm { font-size: 16px; }
+.met-jours { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.met-j { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 4px; border-radius: 8px;
+  background: rgba(75, 99, 152, 0.05); border: 1px solid rgba(75, 99, 152, 0.12); font-size: 11px; color: var(--dim); text-transform: capitalize; }
+.met-j b { font-size: 13px; color: var(--ink); }
+.met-j i { font-style: normal; font-size: 9.5px; }
+
+/* pomodoro */
+.pomo { display: flex; flex-direction: column; gap: 6px; }
+.pomo-temps { font-family: var(--mono); font-size: 34px; letter-spacing: 4px; color: var(--ink); line-height: 1; }
+.pomo-temps.pause { color: #2f9e6a; }
+.pomo-rail { margin: 4px 0 2px; }
+.reu-btn.on { background: var(--blue); color: #fff; }
+.w-titre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.widget .w-head { gap: 8px; }
+.w-btns { flex: none; }
+.w-editing .w-btns { gap: 4px; }
+/* mobile : 4 boutons de page sur une ligne (⊞ WIDGETS ajouté) */
+@media (max-width: 760px) { .topbtns .vault-btn { white-space: nowrap; letter-spacing: 1px; padding-left: 0; padding-right: 0; } }
+@media (hover: none) { .w-drag { display: none; } }   /* tactile : pas de glisser-déposer, les flèches suffisent */
+
+/* signature de l'auteur (discrète, à conserver) */
+.credit { display: block; text-align: center; margin-top: 4px; font-family: var(--mono); font-size: 9px; letter-spacing: 2px;
+  text-transform: uppercase; color: var(--dim); opacity: .6; text-decoration: none; }
+.credit:hover { opacity: 1; }
+/* 4 boutons de page (⊞ WIDGETS) : entre tablette et grand écran, on resserre pour ne pas toucher « V.L.A.D. » */
+@media (max-width: 1300px) and (min-width: 1021px) {
+  .topbar .brand-center { font-size: 22px; letter-spacing: 7px; }
+  .topbtns { gap: 6px; }
+  .topbtns .vault-btn { padding: 8px 10px; font-size: 10.5px; letter-spacing: 1.5px; }
+}
+@media (max-width: 1020px) and (min-width: 761px) {
+  .topbar .brand-center { position: static; transform: none; font-size: 18px; letter-spacing: 5px; margin-top: 14px; }
+  .topbtns { gap: 5px; }
+  .topbtns .vault-btn { padding: 7px 8px; font-size: 10px; letter-spacing: 1px; white-space: nowrap; }
+}

@@ -1,0 +1,5 @@
+{
+  "mcpServers": {
+    "pdf-tools": { "command": "/opt/homebrew/bin/uvx", "args": ["mcp-pdf"] }
+  }
+}

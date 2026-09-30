@@ -1,0 +1,151 @@
+/* ═══ VLAD — AGENDA : même porcelaine que le HUD, le Vault et Progrès ═══ */
+
+/* ── Horloge gravée : coin bas-droit de TOUTES les pages (CodePen « Etched ») ── */
+.hseg { display: grid; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, 1fr);
+  gap: .75em .5em; font-size: 9px; pointer-events: none; --s1: #6b7699; --s2: #ffffff; }
+/* bloc titre des pages : V.L.A.D + sous-titre, horloge gravée à sa droite */
+.pg-titre { display: flex; align-items: center; gap: 44px; }   /* horloge centrée sur la hauteur du bloc titre */
+.hseg-digit { position: relative; width: 2em; height: 3.5em; }
+.hseg-stroke { position: absolute; top: 0; left: 0; width: 1.25em; height: .5em; background: rgba(56,64,106,.24);
+  border-radius: .375em / .25em; box-shadow: 0 .125em .0625em var(--s1) inset, 0 -.0625em .0625em var(--s2) inset;
+  transition: background-color .3s cubic-bezier(.64,0,.78,0), box-shadow .3s cubic-bezier(.64,0,.78,0); }
+.hseg-stroke:nth-child(1), .hseg-stroke:nth-child(4), .hseg-stroke:nth-child(7) { left: .375em; }
+.hseg-stroke:nth-child(2), .hseg-stroke:nth-child(3), .hseg-stroke:nth-child(5), .hseg-stroke:nth-child(6) { border-radius: .25em / .375em; width: .5em; height: 1.25em; }
+.hseg-stroke:nth-child(2), .hseg-stroke:nth-child(3) { top: .375em; }
+.hseg-stroke:nth-child(3), .hseg-stroke:nth-child(6) { right: 0; left: auto; }
+.hseg-stroke:nth-child(5), .hseg-stroke:nth-child(6) { top: auto; bottom: .375em; }
+.hseg-stroke:nth-child(4) { top: 1.5em; }
+.hseg-stroke:nth-child(7) { top: auto; bottom: 0; }
+[data-digit="0"] .hseg-stroke:nth-child(4),
+[data-digit="1"] .hseg-stroke:nth-child(1), [data-digit="1"] .hseg-stroke:nth-child(2), [data-digit="1"] .hseg-stroke:nth-child(4), [data-digit="1"] .hseg-stroke:nth-child(5), [data-digit="1"] .hseg-stroke:nth-child(7),
+[data-digit="2"] .hseg-stroke:nth-child(2), [data-digit="2"] .hseg-stroke:nth-child(6),
+[data-digit="3"] .hseg-stroke:nth-child(2), [data-digit="3"] .hseg-stroke:nth-child(5),
+[data-digit="4"] .hseg-stroke:nth-child(1), [data-digit="4"] .hseg-stroke:nth-child(5), [data-digit="4"] .hseg-stroke:nth-child(7),
+[data-digit="5"] .hseg-stroke:nth-child(3), [data-digit="5"] .hseg-stroke:nth-child(5),
+[data-digit="6"] .hseg-stroke:nth-child(3),
+[data-digit="7"] .hseg-stroke:nth-child(2), [data-digit="7"] .hseg-stroke:nth-child(4), [data-digit="7"] .hseg-stroke:nth-child(5), [data-digit="7"] .hseg-stroke:nth-child(7),
+[data-digit="9"] .hseg-stroke:nth-child(5) {
+  background: rgba(56,64,106,0); box-shadow: 0 0 0 var(--s1) inset, 0 0 0 var(--s2) inset; }
+/* zéro de tête : gravure à peine visible, comme l'original */
+[data-digit="0"]:first-child .hseg-stroke:not(:nth-child(4)) { background: rgba(56,64,106,.10);
+  box-shadow: 0 min(2px, .0625em) min(2px, .0625em) var(--s1) inset, 0 max(-2px, -.0625em) min(2px, .0625em) var(--s2) inset; }
+
+/* ── Horloge araignée : haut-gauche de l'accueil ── */
+.ara { width: 230px; flex: none; display: flex; flex-direction: column; align-items: center; gap: 2px; margin: 0 0 16px 4px; }
+.ara svg { width: 230px; height: 230px; overflow: visible; }
+.ara-txt { display: flex; flex-direction: column; align-items: center; margin-top: 18px; font-family: var(--mono); letter-spacing: 3px; text-transform: uppercase; }
+.ara-txt span { font-size: 10px; color: var(--dim); white-space: nowrap; }
+.ara-txt b { font-size: 20px; font-weight: 500; letter-spacing: 5px; color: var(--ink); text-shadow: 0 2px 12px rgba(56,64,106,.3); }
+
+/* ── Bandeau semaine (accueil) ── */
+.ags { display: flex; flex-direction: column; gap: 8px; transition: transform .8s; }
+.ags-head { background: rgba(255,255,255,.4); border-radius: 8px; padding: 6px 12px; text-transform: uppercase; letter-spacing: 2px; font-size: 11px; color: var(--ink); line-height: 1.5; }
+.ags-head p { margin: 0; } .ags-head strong { font-weight: 600; letter-spacing: 4px; }
+.ags { min-width: 0; }
+.ags-mask { overflow: hidden; container-type: inline-size; min-width: 0; -webkit-mask-image: linear-gradient(to right, transparent 0, #000 4%, #000 78%, transparent 100%); mask-image: linear-gradient(to right, transparent 0, #000 4%, #000 78%, transparent 100%);
+  transition: transform .8s; transform-origin: left center; }
+.ags.active .ags-mask { transform: perspective(700px) rotateY(-7deg); }
+.ags-week { display: grid; grid-template-columns: repeat(7, 138px); padding: 6px 0 4px 8px; transition: margin-left .5s cubic-bezier(.4,0,.2,1); }
+.ags-day { border: 0; background: transparent; text-align: left; padding: 0 12px 6px 0; cursor: pointer; color: var(--ink); font-family: var(--sans); transition: .4s; }
+.ags-day p { margin: 0 0 6px; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; border-bottom: 1px solid rgba(56,64,106,.55); padding-bottom: 4px; display: flex; justify-content: space-between; color: var(--dim); }
+.ags-day p .date { font-weight: 700; color: var(--ink); }
+.ags-day.today p { border-bottom-color: #4b6398; color: #4b6398; }
+.ags-day.on p { border-bottom-width: 2px; font-size: 11px; }
+.ags-list { display: flex; flex-direction: column; gap: 3px; }
+.ags-ev { display: flex; align-items: center; gap: 5px; font-size: 11px; line-height: 1.25; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ags-ev i { width: 6px; height: 6px; border-radius: 50%; background: #4b6398; flex: none; }
+.ags-ev.école i, .ags-ev.ecole i { background: #c4892a; } .ags-ev.client i { background: #2fae72; }
+.ags-ev.vide { color: var(--dim); font-style: italic; } .ags-ev.vide i { display: none; }
+.ags-day.on .ags-ev { white-space: normal; }
+.ags-btn { align-self: flex-start; border: 1px solid rgba(75,99,152,.30); background: rgba(75,99,152,.10); color: #4b6398; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; padding: 7px 12px; border-radius: 8px; cursor: pointer; transition: all .25s; }
+.ags-btn:hover { background: rgba(75,99,152,.22); box-shadow: 0 0 14px rgba(75,99,152,.25); }
+
+/* ── Page Agenda ── */
+.ag { position: fixed; inset: 0; z-index: 50; overflow: auto; background: linear-gradient(-45deg, #8691b3, #edeef3); color: #38406A; font-family: var(--sans);
+  padding: 26px 34px 60px; display: flex; flex-direction: column; gap: 16px; }
+.ag > * { flex-shrink: 0; }
+.ag-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.ag-nav { display: flex; align-items: center; gap: 12px; position: absolute; left: 50%; transform: translateX(-50%); }
+.ag-nav button { width: 34px; height: 34px; border-radius: 50%; border: 1px solid rgba(75,99,152,.30); background: rgba(255,255,255,.5); color: #4b6398; cursor: pointer; font-size: 18px; line-height: 1; }
+.ag-title { font-size: 22px; font-weight: 300; letter-spacing: 1px; min-width: 200px; text-align: center; text-transform: capitalize; }
+.ag-actions { display: flex; align-items: center; gap: 10px; }
+
+/* mois : 7 colonnes de cartes de verre (réf. CodePen « calendar dates ») */
+.ag-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 10px; width: 100%; max-width: 100%; }
+.ag-dow { font-family: var(--mono); font-size: 10px; letter-spacing: 3px; color: #5a6b94; text-align: center; padding: 4px 0; min-width: 0; overflow: hidden; }
+.ag-cell { position: relative; display: flex; flex-direction: column; gap: 6px; min-height: 112px; padding: 8px; min-width: 0; overflow: hidden; text-align: left; cursor: pointer; font-family: var(--sans); color: #38406A;
+  background: rgba(255,255,255,.42); border: 1px solid rgba(75,99,152,.16); border-radius: 16px;
+  box-shadow: inset 0 0 22px rgba(75,99,152,.04); transition: transform .25s, background .25s, box-shadow .25s; }
+.ag-cell:hover { transform: translateY(-4px); background: rgba(255,255,255,.62); box-shadow: 0 10px 26px rgba(56,64,106,.14); }
+.ag-cell.out { opacity: .45; }
+.ag-cell.passe:not(.today) { background: rgba(255,255,255,.28); }
+.ag-cell.today { border-color: #4b6398; box-shadow: 0 0 0 1px rgba(75,99,152,.35), 0 10px 30px rgba(56,64,106,.12); background: rgba(255,255,255,.66); }
+.ag-num { display: inline-flex; align-items: baseline; gap: 6px; align-self: flex-start; padding: 3px 10px; border-radius: 100px; border: 1px solid rgba(75,99,152,.18); background: rgba(255,255,255,.35); box-shadow: inset 0 0 8px rgba(56,64,106,.05); }
+.ag-num b { font-size: 15px; font-weight: 500; } .ag-num span { font-family: var(--mono); font-size: 9px; letter-spacing: 1.5px; color: #7a84a6; }
+.ag-cell.today .ag-num { background: #4b6398; border-color: #4b6398; } .ag-cell.today .ag-num b, .ag-cell.today .ag-num span { color: #fff; }
+.ag-evs { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.ag-ev { display: flex; align-items: center; gap: 6px; font-size: 11.5px; line-height: 1.3; min-width: 0; }
+.ag-ev span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ag-ev i { width: 6px; height: 6px; border-radius: 50%; background: #4b6398; flex: none; }
+.ag-ev.école i, .ag-ev.ecole i { background: #c4892a; } .ag-ev.client i { background: #2fae72; }
+.ag-more { font-family: var(--mono); font-size: 10px; color: #7a84a6; }
+.ag-today-bar { position: absolute; left: 22px; right: 22px; bottom: 6px; height: 4px; border-radius: 4px; background: #4b6398; box-shadow: 0 0 10px rgba(75,99,152,.6); }
+
+/* jour : frise (réf. CodePen « Today's events ») */
+.ag-jour { max-width: 760px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; gap: 10px; }
+.ag-tl { display: flex; flex-direction: column; gap: 0; padding: 22px 26px; }
+.ag-item { display: flex; align-items: flex-start; gap: 16px; position: relative; padding-bottom: 34px; }
+.ag-item:last-child { padding-bottom: 6px; }
+.ag-ico { width: 56px; height: 56px; border-radius: 50%; flex: none; display: grid; place-items: center; color: #fff; background: #4b6398; box-shadow: 0 6px 16px rgba(56,64,106,.22), inset 0 1px 0 rgba(255,255,255,.35); position: relative; z-index: 1; }
+.ag-ico svg { width: 26px; height: 26px; }
+.ag-item.école .ag-ico, .ag-item.ecole .ag-ico { background: #c4892a; } .ag-item.client .ag-ico { background: #2fae72; }
+.ag-item:not(:last-child)::before { content: ""; position: absolute; left: 27px; top: 56px; bottom: 0; width: 2px; background: rgba(75,99,152,.22); }
+.ag-item.fait .ag-ico { box-shadow: 0 0 0 3px #2fae72, 0 6px 16px rgba(56,64,106,.22); }
+.ag-item.rate .ag-ico { opacity: .55; }
+.ag-info { flex: 1; min-width: 0; padding-top: 4px; }
+.ag-meta { display: flex; justify-content: space-between; font-family: var(--mono); font-size: 10.5px; letter-spacing: 1px; color: #5a6b94; margin-bottom: 4px; }
+.ag-info h3 { margin: 0; font-size: 16px; font-weight: 500; letter-spacing: .2px; }
+.ag-place { margin: 3px 0 0; font-size: 12px; color: #6e799d; }
+.ag-note { margin: 4px 0 0; font-size: 12px; font-style: italic; color: #5a6b94; }
+.ag-check { flex: none; width: 36px; height: 36px; margin-top: 12px; border-radius: 50%; border: 1.5px solid rgba(75,99,152,.35); background: rgba(255,255,255,.5); color: #7a84a6; font-size: 15px; cursor: pointer; transition: all .25s; }
+.ag-check.on { background: #2fae72; border-color: #2fae72; color: #fff; box-shadow: 0 0 12px rgba(47,174,114,.45); }
+.ag-check.on.rate { background: #c94f63; border-color: #c94f63; }
+
+/* blocs de la journée type : plus discrets que les vrais rendez-vous */
+.ag-item.type .ag-ico { background: rgba(255,255,255,.55); color: #4b6398; border: 1.5px solid rgba(75,99,152,.35); box-shadow: inset 0 1px 0 #fff, 0 3px 8px rgba(56,64,106,.10); }
+.ag-item.type h3 { font-weight: 400; color: #4a527a; }
+.ag-item.passe { opacity: .55; }
+.ag-now { display: flex; align-items: center; gap: 10px; margin: -22px 0 26px 0; padding-left: 64px; color: #c0507f; font-family: var(--mono); font-size: 10px; letter-spacing: 2px; text-transform: uppercase; }
+.ag-now i { flex: 1; height: 2px; background: #c0507f; border-radius: 2px; box-shadow: 0 0 8px rgba(192,80,127,.6); order: 2; }
+.ag-foot { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; padding: 0 6px; }
+.ag-edit textarea { min-height: 300px; font-family: var(--mono); font-size: 12.5px; line-height: 1.5; }
+
+/* ── mobile ── */
+@media (max-width: 760px) {
+  .hseg { font-size: 7px; }
+  .pg-titre { gap: 22px; }
+  .ara { width: 136px; margin: 0 0 8px; } .ara svg { width: 136px; height: 136px; }
+  .ara-txt { margin-top: 10px; letter-spacing: 1px; } .ara-txt span { font-size: 8.5px; } .ara-txt b { font-size: 14px; letter-spacing: 2px; }
+  /* bandeau semaine → liste verticale pleine largeur (aujourd'hui + 2 jours) */
+  .ags-mask { -webkit-mask-image: none; mask-image: none; }
+  .ags.active .ags-mask { transform: none; }
+  .ags-week { display: flex; flex-direction: column; gap: 10px; margin-left: 0 !important; padding: 4px 0 0; }
+  .ags-day { width: 100%; padding: 0; }
+  .ags-day p { font-size: 11px; }
+  .ags-ev { font-size: 13px; white-space: normal; }
+  .ag { padding: calc(env(safe-area-inset-top) + 14px) 12px 120px; gap: 12px; }
+  .ag-top { flex-wrap: wrap; }
+  .ag-nav { position: static; transform: none; order: 3; width: 100%; justify-content: center; }
+  .ag-title { font-size: 18px; min-width: 0; }
+  .ag-grid { gap: 4px; }
+  .ag-dow { font-size: 9px; letter-spacing: 1px; }
+  .ag-cell { min-height: 64px; padding: 5px; border-radius: 10px; gap: 4px; }
+  .ag-num { padding: 1px 6px; gap: 3px; } .ag-num b { font-size: 12px; } .ag-num span { display: none; }
+  .ag-ev span, .ag-more { display: none; }
+  .ag-evs { flex-direction: row; flex-wrap: wrap; gap: 3px; }
+  .ag-today-bar { left: 10px; right: 10px; bottom: 3px; height: 3px; }
+  .ag-tl { padding: 16px 12px; }
+  .ag-ico { width: 44px; height: 44px; } .ag-ico svg { width: 20px; height: 20px; }
+  .ag-item:not(:last-child)::before { left: 21px; top: 44px; }
+  .ag-now { padding-left: 0; margin: -18px 0 22px; }
+}
