@@ -87,6 +87,18 @@ async function github() {
 async function handle(req, res, url, send, body) {
   const q = new URL(req.url, "http://x").searchParams;
 
+  // ── Remplir le vault (fiches-index des skills, agents, CLAUDE.md, mémoires, Obsidian, dossiers) ──
+  if (url.startsWith("/vault/") && ["/vault/sources", "/vault/import", "/vault/deposer"].includes(url)) {
+    const vi = require("./vault-import.js");
+    try {
+      if (req.method === "GET" && url === "/vault/sources") send(res, 200, vi.etat());
+      else if (req.method === "POST" && url === "/vault/sources") send(res, 200, vi.regler(await body(req)));
+      else if (req.method === "POST" && url === "/vault/import") send(res, 200, { ok: true, ...vi.synchroniser() });
+      else if (req.method === "POST" && url === "/vault/deposer") { const b = await body(req); send(res, 200, { ok: true, fichier: vi.deposer(b.name, b.dataB64) }); }
+      else send(res, 405, { error: "méthode" });
+    } catch (e) { send(res, 400, { error: String(e.message || e) }); }
+    return true;
+  }
   if (req.method === "GET" && url === "/layout") {
     try { send(res, 200, JSON.parse(fs.readFileSync(LAYOUT, "utf8"))); } catch { send(res, 200, null); }
     return true;

@@ -19,7 +19,14 @@ const { spawn } = require("child_process");
 const path = require("path");
 const fs = require("fs");
 const { buildVault } = require("./vault-data.js");
-const widgetsApi = require("./widgets-api.js");   // bibliothèque de widgets : disposition, RSS, sites, GitHub, notes
+const widgetsApi = require("./widgets-api.js");
+// vault rempli depuis les fichiers de l'utilisateur : resynchronisé au démarrage puis toutes les 6 h
+// (seulement si l'import a déjà été lancé une fois depuis la page Vault)
+{
+  const vi = require("./vault-import.js");
+  const synchro = () => { try { if (vi.etat().derniere) { const r = vi.synchroniser(); console.log("   vault : fiches-index à jour", JSON.stringify(r.stats)); } } catch (e) { console.error("   vault import :", e.message); } };
+  setTimeout(synchro, 30000); setInterval(synchro, 6 * 3600_000);
+}   // bibliothèque de widgets : disposition, RSS, sites, GitHub, notes
 // Filets de crash : plus JAMAIS de mort silencieuse (le 06/08 le pont est tombé
 // sans laisser de trace — le log avait été écrasé par la relance suivante).
 // Trace datée persistante, puis launchd (KeepAlive) relance le pont en ~1 s.
@@ -314,6 +321,9 @@ const PERSONA =
   "Tu as accès EN LECTURE au Vault. Sources, dans l'ordre où chercher : " +
   (MEMORY_DIR ? "1) les fiches mémoire dans " + MEMORY_DIR + " — commence par Grep dans ce dossier ; 2) " : "") +
   "les notes dans vault/ et les skills dans skills/ (relatifs au dossier de VLAD). " +
+  "INDEX DES SOURCES : " + path.join(ROOT, "vault", "sources") + " contient une fiche par skill, agent, fichier CLAUDE.md, mémoire, " +
+  "note Obsidian ou document importé — un résumé et le chemin du fichier d'origine (ligne Fichier d'origine). " +
+  "Cherche d'abord par Grep dans ce dossier, puis lis l'ORIGINAL avec Read quand il faut le détail. " +
   "Quand on te pose une question sur des projets, clients, dossiers, prix ou notes, CHERCHE d'abord " +
   "avec Grep (insensible à la casse), puis lis le fichier pertinent avec Read, et réponds en une " +
   "synthèse orale courte. Ne récite jamais un fichier entier.";

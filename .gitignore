@@ -45,3 +45,9 @@ layout.json
 .rappels-sent.json
 .rapport.json
 agenda-local.json
+
+# Vault rempli depuis tes fichiers (fiches-index + réglages) et dépôts de documents
+vault/sources/
+vault-sources.json
+vault/inbox/*
+!vault/inbox/template-*.md

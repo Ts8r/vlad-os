@@ -31,6 +31,7 @@ function walkMd(dir, acc = []) {
 
 function parseNote(file) {
   let txt = ""; try { txt = fs.readFileSync(file, "utf8"); } catch { return null; }
+  if (/^graphe:\s*non\s*$/m.test(txt)) return null;   // fiche-index d'un élément déjà dessiné (skill, agent, mémoire)
   const name = path.basename(file, ".md");
   const title = (txt.match(/^#\s+(.+)$/m)?.[1] || name).replace(/[#*`\[\]]/g, "").trim();
   const tags = (txt.match(/tags:\s*\[([^\]]*)\]/)?.[1] || "").split(",").map((s) => s.trim().replace(/['"]/g, "")).filter(Boolean);

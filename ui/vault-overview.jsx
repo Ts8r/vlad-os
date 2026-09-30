@@ -10,6 +10,7 @@
  * Activity (canvas vivant) + Data Stream (droite). Clic pod → liste membres.
  */
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import RemplirVault from "./vault-remplir.jsx";
 import { HorlogeSegments } from "./horloge-segments.jsx";
 import "./vault-overview.css";
 
@@ -47,6 +48,7 @@ export default function VaultOverview({ onClose }) {
   const [lien, setLien] = useState(true);            // le pont répond-il ? (télémétrie fraîche)
   const [sel, setSel] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [remplir, setRemplir] = useState(false);   // panneau « Remplir le vault »
   const [clock, setClock] = useState(0);          // uptime affiché (s)
   const netRef = useRef(null), streamRef = useRef(null), barsRef = useRef(null);
   const histRef = useRef([]);                        // relevés de télémétrie successifs (data stream)
@@ -200,10 +202,12 @@ export default function VaultOverview({ onClose }) {
 
   return (
     <div className="vo">
+      {remplir && <RemplirVault onClose={() => setRemplir(false)} onFait={refresh} />}
       {/* en-tête + rails */}
       <header className="vo-head">
         <div className="pg-titre"><div><div className="vo-brand">V.L.A.D</div><div className="vo-sub">VAULT OVERVIEW</div></div><HorlogeSegments /></div>
         <div className="vo-actions">
+          <button className="vo-remplir" onClick={() => setRemplir(true)} title="Indexer tes skills, agents, CLAUDE.md, mémoires, notes…">⊕ REMPLIR</button>
           <button onClick={refresh} title="Re-scanner">{refreshing ? "…" : "↻"}</button>
           <button onClick={onClose} title="Fermer (Échap)">✕</button>
         </div>
