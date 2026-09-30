@@ -1,5 +1,6 @@
 /* ═══════════════════════════════════════════════════════════════
-   VLAD — CAP : tâches de travail (semaine) + habitudes (mois) + rapport.
+   VLAD — SUIVI : tâches de travail (semaine) + habitudes (mois) + rapport,
+   affichés en onglets dans la page Agenda.
    Structure = template de référence « Quiet Progress », bloc par bloc, dans
    l'identité porcelaine VLAD. Données : tracker.json via le pont (partagées
    Mac / iPhone / Telegram — la voix écrit au même endroit).
@@ -369,25 +370,13 @@ function Rapport() {
   );
 }
 
-/* ═══ PAGE ═══ */
-
-export default function Progres({ onClose }) {
+/* ═══ VUES DE SUIVI, affichées en onglets dans la page Agenda ═══ */
+export const VUES_SUIVI = [["semaine", "SEMAINE"], ["habitudes", "HABITUDES"], ["rapport", "RAPPORT"]];
+export function Suivi({ vue }) {
   const [t, act] = useTracker();
-  const [tab, setTab] = useState(() => (location.hash.split("/")[1] || "semaine"));
   const [week, setWeek] = useState(() => mondayOf(iso(new Date())));
   const [month, setMonth] = useState(() => iso(new Date()).slice(0, 7));
-  useEffect(() => { const k = (e) => e.key === "Escape" && onClose?.(); window.addEventListener("keydown", k); return () => window.removeEventListener("keydown", k); }, []);
-  return (
-    <div className="pg">
-      <div className="pg-topbar">
-        <div className="pg-titre"><div><div className="pg-brand">V.L.A.D</div><div className="pg-brandsub">CAP · {tab === "semaine" ? "SEMAINE" : tab === "habitudes" ? month.toUpperCase() : "RAPPORT"}</div></div><HorlogeSegments /></div>
-        <div className="pg-tabs">{[["semaine", "SEMAINE"], ["habitudes", "HABITUDES"], ["rapport", "RAPPORT"]].map(([k, l]) => <button key={k} className={tab === k ? "on" : ""} onClick={() => setTab(k)}>{l}</button>)}</div>
-        <div className="pg-icons"><button className="pg-ic" onClick={onClose} title="Fermer (Échap)">✕</button></div>
-      </div>
-      {!t && <p className="pg-empty">chargement…</p>}
-      {t && tab === "semaine" && <Semaine t={t} act={act} week={week} setWeek={setWeek} />}
-      {t && tab === "habitudes" && <Habitudes t={t} act={act} month={month} setMonth={setMonth} />}
-      {t && tab === "rapport" && <Rapport />}
-    </div>
-  );
+  if (vue === "rapport") return <Rapport />;
+  if (!t) return <p className="pg-empty">chargement…</p>;
+  return vue === "habitudes" ? <Habitudes t={t} act={act} month={month} setMonth={setMonth} /> : <Semaine t={t} act={act} week={week} setWeek={setWeek} />;
 }

@@ -27,7 +27,7 @@ Deux processus locaux et des fichiers : c'est tout.
 3. **Cerveau** : le texte part dans UN process `claude` gardé vivant, avec un prompt système court (la persona, dans `vlad-server.js`) et seulement les outils de lecture (Read, Grep, Glob, WebSearch, WebFetch).
 4. **Réponse en streaming**, découpée en phrases → synthèse vocale phrase par phrase : VLAD commence à parler avant d'avoir fini de réfléchir.
 5. **Marqueurs** dans la réponse, jamais lus à voix haute :
-   - `[[TACHE: …]]` → écrit directement dans `tracker.json` (page Cap) ;
+   - `[[TACHE: …]]` → écrit directement dans `tracker.json` (page Agenda, onglets Semaine / Habitudes) ;
    - `[[MAIL: …]]` → le pont lit les mails demandés et relance le cerveau ;
    - `[[ACTION: …]]` → action proposée, exécutée **seulement** après un « confirme » vocal, par un `claude` ponctuel qui a les droits d'écriture.
 
@@ -38,8 +38,8 @@ Deux processus locaux et des fichiers : c'est tout.
 | `ui/app.jsx` | HUD : œil, onde vocale, dock de saisie, colonnes de widgets |
 | `ui/widget-board.jsx` | Disposition, mode édition, bibliothèque de widgets |
 | `ui/widgets/` | Un fichier par widget, découvert automatiquement |
-| `ui/progres.jsx` | Page **Cap** : semaine, habitudes, rapport |
-| `ui/agenda.jsx` | Page **Agenda** : mois, journée, journée type |
+| `ui/progres.jsx` | Onglets **Semaine**, **Habitudes**, **Rapport** de la page Agenda |
+| `ui/agenda.jsx` | Page **Agenda** : mois, journée, journée type + onglets de suivi |
 | `ui/vault-overview.jsx` | Page **Vault** : graphe des notes |
 | `voice/vlad-server.js` | Le pont : HTTP, voix, cerveau, Telegram, tâches planifiées |
 | `voice/widgets-api.js` | Routes des widgets : disposition, RSS, sites, GitHub, notes |

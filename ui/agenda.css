@@ -149,3 +149,12 @@
   .ag-item:not(:last-child)::before { left: 21px; top: 44px; }
   .ag-now { padding-left: 0; margin: -18px 0 22px; }
 }
+
+/* onglets MOIS · SEMAINE · HABITUDES · RAPPORT au centre de la barre ; la navigation du mois passe dessous */
+.ag-top { position: relative; }
+.ag-navrow { position: static; transform: none; justify-content: center; }
+@media (max-width: 760px) {
+  .ag-top { flex-wrap: wrap; gap: 10px; }
+  .ag-top .pg-tabs { position: static; transform: none; order: 3; width: 100%; }
+  .ag-top .pg-tabs button { flex: 1; padding: 9px 0; font-size: 10px; letter-spacing: 1px; }
+}

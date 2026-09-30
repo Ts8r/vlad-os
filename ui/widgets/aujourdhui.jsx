@@ -2,10 +2,10 @@ import React, { useState, useEffect } from "react";
 import { Fold, Gauge, BRIDGE, useHud } from "./_base.jsx";
 import { useTracker, Ring, DAY7 } from "../progres.jsx";
 
-export const meta = {"id": "aujourdhui", "titre": "Aujourd'hui", "icone": "◎", "categorie": "Quotidien", "description": "Tâches et habitudes du jour, clic = page Cap.", "colonne": "left", "requiert": [], "perso": false};
+export const meta = {"id": "aujourdhui", "titre": "Aujourd'hui", "icone": "◎", "categorie": "Quotidien", "description": "Tâches et habitudes du jour, clic = semaine dans l'Agenda.", "colonne": "left", "requiert": [], "perso": false};
 
 export default function ProgresWidget() {
-  const onOpen = useHud().ouvrirPage?.bind(null, "cap");
+  const onOpen = useHud().ouvrirPage?.bind(null, "semaine");
   const [t, act] = useTracker();
   const [draft, setDraft] = useState("");
   const tasks = t ? (t.tasks[t.today] || []) : [];
@@ -20,7 +20,7 @@ export default function ProgresWidget() {
       {!t && <p className="dim">connexion au pont…</p>}
       {t && (
         <>
-          <div className="pw-head" onClick={onOpen} title="Ouvrir Cap">
+          <div className="pw-head" onClick={onOpen} title="Ouvrir la semaine (Agenda)">
             <Ring size={56} pct={pct} stroke={6} color={DAY7[dow]} glow font={12} />
             <div>
               <div className="pw-n">{done} <span className="dim">/ {tasks.length} tâches</span></div>

@@ -9,6 +9,7 @@
 import React, { useEffect, useState } from "react";
 import { HorlogeSegments } from "./horloge-segments.jsx";
 import "./agenda.css";
+import { Suivi, VUES_SUIVI } from "./progres.jsx";   // onglets Semaine · Habitudes · Rapport
 
 const BRIDGE = "/api";
 const iso = (d) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
@@ -137,8 +138,9 @@ export function AgendaSemaine({ onOpen }) {
 }
 
 /* ═══ PAGE AGENDA — mois (grille de cartes) → jour (frise horaire) ═══ */
-export default function AgendaPage({ onClose, jourInitial }) {
+export default function AgendaPage({ onClose, jourInitial, vueInitiale }) {
   const today = iso(new Date());
+  const [vue, setVue] = useState(vueInitiale || "mois");   // mois (calendrier) · semaine · habitudes · rapport
   const [jour, setJour] = useState(jourInitial || null);
   const [mois, setMois] = useState((jourInitial || today).slice(0, 7));
   const evs = useEvenements(mois);
@@ -222,20 +224,24 @@ export default function AgendaPage({ onClose, jourInitial }) {
   return (
     <div className="ag">
       <div className="ag-top">
-        <div className="pg-titre"><div><div className="pg-brand">V.L.A.D</div><div className="pg-brandsub">AGENDA · {jour ? "JOUR" : "MOIS"}</div></div><HorlogeSegments /></div>
-        <div className="ag-nav">
-          <button onClick={() => (jour ? allerAu(addDays(jour, -1)) : nav(-1))} title={jour ? "Jour précédent" : "Mois précédent"}>‹</button>
-          <span className="ag-title">{jour ? fmtLong(jour) : `${MOIS[m - 1]} ${y}`}</span>
-          <button onClick={() => (jour ? allerAu(addDays(jour, 1)) : nav(1))} title={jour ? "Jour suivant" : "Mois suivant"}>›</button>
-        </div>
+        <div className="pg-titre"><div><div className="pg-brand">V.L.A.D</div><div className="pg-brandsub">AGENDA · {vue !== "mois" ? VUES_SUIVI.find(([k]) => k === vue)[1] : jour ? "JOUR" : "MOIS"}</div></div><HorlogeSegments /></div>
+        <div className="pg-tabs">{[["mois", "MOIS"], ...VUES_SUIVI].map(([k, l]) => <button key={k} className={vue === k ? "on" : ""} onClick={() => setVue(k)}>{l}</button>)}</div>
         <div className="ag-actions">
-          {jour && <button className="pg-btn" onClick={() => setJour(null)}>← Mois</button>}
-          {!jour && mois !== today.slice(0, 7) && <button className="pg-btn" onClick={() => setMois(today.slice(0, 7))}>Aujourd'hui</button>}
+          {vue === "mois" && jour && <button className="pg-btn" onClick={() => setJour(null)}>← Mois</button>}
+          {vue === "mois" && !jour && mois !== today.slice(0, 7) && <button className="pg-btn" onClick={() => setMois(today.slice(0, 7))}>Aujourd'hui</button>}
           <button className="pg-ic" onClick={onClose} title="Fermer">✕</button>
         </div>
       </div>
 
-      {!jour && (
+      {vue !== "mois" && <Suivi vue={vue} />}
+
+      {vue === "mois" && <div className="ag-nav ag-navrow">
+          <button onClick={() => (jour ? allerAu(addDays(jour, -1)) : nav(-1))} title={jour ? "Jour précédent" : "Mois précédent"}>‹</button>
+          <span className="ag-title">{jour ? fmtLong(jour) : `${MOIS[m - 1]} ${y}`}</span>
+          <button onClick={() => (jour ? allerAu(addDays(jour, 1)) : nav(1))} title={jour ? "Jour suivant" : "Mois suivant"}>›</button>
+        </div>}
+
+      {vue === "mois" && !jour && (
         <div className="ag-grid">
           {J3.map((d) => <div key={d} className="ag-dow">{d}</div>)}
           {cells.map((k) => { const l = evs[k] || []; const inM = k.slice(0, 7) === mois; return (
@@ -249,7 +255,7 @@ export default function AgendaPage({ onClose, jourInitial }) {
             </button>); })}
         </div>)}
 
-      {jour && (
+      {vue === "mois" && jour && (
         <div className="ag-jour">
           <div className="pg-card ag-tl">
             {deroule(jour).map((x, i, all) => {

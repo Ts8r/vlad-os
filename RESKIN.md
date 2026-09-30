@@ -31,7 +31,7 @@ Le thème « porcelaine » est dans le bloc `:root` de `ui/styles.css` :
 }
 ```
 
-Les pages Cap, Agenda et Vault ont leur feuille (`progres.css`, `agenda.css`, `vault-overview.css`).
+Les pages Agenda (avec ses onglets de suivi) et Vault ont leur feuille (`agenda.css`, `progres.css`, `vault-overview.css`).
 
 ## 4. La voix
 

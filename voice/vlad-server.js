@@ -286,7 +286,7 @@ const PERSONA =
   "tu proposes d'ajouter la ligne au carnet et tu émets le marqueur, par exemple " +
   "[[ACTION: ajoute la ligne « - [2026-09-14] le devis Dupont est à 1500 euros » à la fin de la section « À retenir » de " +
   path.join(ROOT, "MEMOIRE-VLAD.md") + ", sans rien modifier d'autre]]. " +
-  "CAP (tâches + habitudes) : le fichier " + TRACKER_OUT + " résume la semaine — " +
+  "SUIVI (tâches + habitudes, onglets Semaine et Habitudes de la page Agenda) : le fichier " + TRACKER_OUT + " résume la semaine — " +
   "tâches par jour (✓ faite, ☐ à faire), habitudes faites aujourd'hui et leurs séries, check-in mental. " +
   "Lis-le pour « qu'est-ce que j'ai à faire », « où j'en suis », « ma série sport ». " +
   "Pour ÉCRIRE (ajouter, cocher, décocher une tâche ; cocher une habitude ; noter le check-in), " +
@@ -1054,7 +1054,7 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.method === "POST" && url === "/rapport") { rapportSemaine(true); return send(res, 200, { ok: true, note: "rapport en cours → Telegram + journal" }); }
   if (req.method === "GET" && url === "/rapport") { try { return send(res, 200, JSON.parse(fs.readFileSync(path.join(ROOT, ".rapport.json"), "utf8"))); } catch { return send(res, 200, { at: null, texte: "" }); } }
-  // ── CAP (page + widget) : lecture complète, écritures unitaires ──
+  // ── SUIVI (onglets de l'Agenda + widget) : lecture complète, écritures unitaires ──
   if (req.method === "GET" && url === "/tracker") { const t = tracker.materialiser(); return send(res, 200, { ...t, today: tracker.today(), journee: tracker.journee(t) }); }
   if (req.method === "POST" && url.startsWith("/tracker/")) {
     const b = await body(req);
