@@ -15,7 +15,7 @@ const ETAT = path.join(ROOT, ".maj.json");
 const MOIS = 30 * 24 * 3600_000;
 
 const git = (args, ms = 60000) => new Promise((ok) =>
-  execFile("git", args, { cwd: ROOT, timeout: ms, maxBuffer: 4e6 }, (e, out, err) => ok({ ok: !e, out: String(out || "").trim(), err: String(err || e?.message || "").trim() })));
+  execFile("git", args, { cwd: ROOT, timeout: ms, maxBuffer: 4e6 }, (e, out, err) => ok({ ok: !e, out: String(out || "").trimEnd(), err: String(err || e?.message || "").trim() })));
 const lire = () => { try { return JSON.parse(fs.readFileSync(ETAT, "utf8")); } catch { return {}; } };
 const ecrire = (e) => { try { fs.writeFileSync(ETAT, JSON.stringify(e, null, 1)); } catch {} };
 
