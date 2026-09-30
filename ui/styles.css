@@ -612,3 +612,9 @@ a.rss-item { display: block; text-decoration: none; color: inherit; cursor: poin
   .topbtns { gap: 5px; }
   .topbtns .vault-btn { padding: 7px 8px; font-size: 10px; letter-spacing: 1px; white-space: nowrap; }
 }
+
+/* bandeau de mise à jour */
+.maj-banniere { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: center; }
+.maj-banniere button { font: inherit; font-size: 11px; padding: 4px 10px; border-radius: 6px; border: 1px solid #fff; background: #fff; color: var(--blue); cursor: pointer; }
+.maj-banniere .maj-x { background: none; color: #fff; border-color: transparent; padding: 2px 6px; opacity: .8; }
+.maj-note { font-size: 11px; opacity: .8; }

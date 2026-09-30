@@ -13,6 +13,13 @@ LOG_DIR="/tmp"
 
 is_up() { lsof -ti tcp:"$1" >/dev/null 2>&1; }
 
+# Relance complète (après une mise à jour) : bash vlad.sh restart
+if [ "$1" = "restart" ]; then
+  bash "$0" stop >/dev/null 2>&1 || true
+  sleep 1
+  exec bash "$0"
+fi
+
 # Arrêt propre : bash vlad.sh stop
 if [ "$1" = "stop" ]; then
   echo "→ Arrêt de VLAD…"

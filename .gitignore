@@ -51,3 +51,6 @@ vault/sources/
 vault-sources.json
 vault/inbox/*
 !vault/inbox/template-*.md
+
+# État des mises à jour
+.maj.json

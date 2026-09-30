@@ -56,6 +56,40 @@ function SessionAccess() {
   );
 }
 
+/* ── Mise à jour de VLAD disponible sur GitHub : bandeau discret, un clic pour l'appliquer.
+   Masquable (se représente à la version suivante). ── */
+function MiseAJour() {
+  const [m, setM] = useState(null);
+  const [etat, setEtat] = useState("");
+  useEffect(() => {
+    const load = () => fetch(BRIDGE + "/maj").then((r) => r.json()).then(setM).catch(() => {});
+    load(); const iv = setInterval(load, 3600000); return () => clearInterval(iv);
+  }, []);
+  const cle = "vlad_maj_vue_" + (m?.distant || "");
+  if (!m?.retard || etat === "masque") return null;
+  try { if (localStorage.getItem(cle) === "1") return null; } catch {}
+  const appliquer = async () => {
+    setEtat("en cours");
+    const r = await fetch(BRIDGE + "/maj/appliquer", { method: "POST" }).then((x) => x.json()).catch(() => ({ ok: false, raison: "pont injoignable" }));
+    if (r.ok && r.relance) { setEtat("relance"); setTimeout(() => location.reload(), 20000); }
+    else setEtat("échec : " + (r.raison || "inconnu"));
+  };
+  const masquer = () => { try { localStorage.setItem(cle, "1"); } catch {} setEtat("masque"); };
+  return (
+    <div className="acces-banniere douce maj-banniere">
+      {etat === "relance" ? "✓ VLAD est à jour — il redémarre, la page se recharge dans 20 s…"
+        : etat === "en cours" ? "Mise à jour en cours…"
+        : etat.startsWith("échec") ? etat
+        : <>
+            <span title={(m.nouveautes || []).join("\n")}>Mise à jour de VLAD disponible ({m.retard} nouveauté{m.retard > 1 ? "s" : ""})</span>
+            {m.applicable
+              ? <button onClick={appliquer}>Mettre à jour</button>
+              : <span className="maj-note">{m.conflits?.length ? "tu as modifié : " + m.conflits.join(", ") + " — fais « git pull » à la main" : "fais « git pull » dans le dossier de VLAD"}</span>}
+          </>}
+      {etat !== "relance" && etat !== "en cours" && <button className="maj-x" onClick={masquer} title="Masquer jusqu'à la prochaine version">×</button>}
+    </div>
+  );
+}
 
 function HUD() {
   const [speaking, setSpeaking] = useState(false);
@@ -396,6 +430,7 @@ function HUD() {
     <HudCtx.Provider value={hud}><BoardCtx.Provider value={board}>
     <div className={`stage tab-${mobTab} ${board.editing ? "editing" : ""}`}>
       <SessionAccess />
+      <MiseAJour />
       {/* En-tête : cadran · marque · pages */}
       <header className="topbar">
         <HorlogeAraignee />

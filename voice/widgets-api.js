@@ -99,6 +99,15 @@ async function handle(req, res, url, send, body) {
     } catch (e) { send(res, 400, { error: String(e.message || e) }); }
     return true;
   }
+  // ── Mises à jour de l'app (GitHub) ──
+  if (url === "/maj" || url === "/maj/verifier" || url === "/maj/appliquer") {
+    const maj = require("./maj.js");
+    if (req.method === "GET" && url === "/maj") send(res, 200, { ...maj.etat(), auto: process.env.VLAD_AUTO_UPDATE === "1" });
+    else if (req.method === "POST" && url === "/maj/verifier") send(res, 200, await maj.verifier());
+    else if (req.method === "POST" && url === "/maj/appliquer") send(res, 200, await maj.appliquer());
+    else send(res, 405, { error: "méthode" });
+    return true;
+  }
   if (req.method === "GET" && url === "/layout") {
     try { send(res, 200, JSON.parse(fs.readFileSync(LAYOUT, "utf8"))); } catch { send(res, 200, null); }
     return true;

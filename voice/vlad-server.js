@@ -26,7 +26,8 @@ const widgetsApi = require("./widgets-api.js");
   const vi = require("./vault-import.js");
   const synchro = () => { try { if (vi.etat().derniere) { const r = vi.synchroniser(); console.log("   vault : fiches-index à jour", JSON.stringify(r.stats)); } } catch (e) { console.error("   vault import :", e.message); } };
   setTimeout(synchro, 30000); setInterval(synchro, 6 * 3600_000);
-}   // bibliothèque de widgets : disposition, RSS, sites, GitHub, notes
+}
+require("./maj.js").planifier();   // mises à jour de l'app depuis GitHub (au moins une vérification par mois)   // bibliothèque de widgets : disposition, RSS, sites, GitHub, notes
 // Filets de crash : plus JAMAIS de mort silencieuse (le 06/08 le pont est tombé
 // sans laisser de trace — le log avait été écrasé par la relance suivante).
 // Trace datée persistante, puis launchd (KeepAlive) relance le pont en ~1 s.
