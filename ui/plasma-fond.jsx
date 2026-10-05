@@ -7,7 +7,7 @@
    · OPTION désactivée par défaut — l'activer : localStorage « vlad_plasma » = "1".
    ═══════════════════════════════════════════════════════════════ */
 import React, { Component, useEffect, useState } from "react";
-import { PlasmaProvider, PlasmaCanvas, usePlasmaRuntime } from "@cruxgarden/plasma-ui";
+import { PlasmaProvider, usePlasmaRuntime } from "@cruxgarden/plasma-ui";
 
 // Une mise à jour « à chaud » de ce module laissait le moteur WebGL incohérent
 // (canevas d'avant, panneaux d'après → cartes transparentes) : on recharge la page.
@@ -15,8 +15,7 @@ if (import.meta.hot) import.meta.hot.decline();
 import { PlasmaCtx } from "./widgets/_base.jsx";
 
 const ORDI = "(min-width: 1021px) and (pointer: fine)";
-// OPTION, désactivée par défaut : sur un portable (écran Retina, batterie), le rendu plein écran
-// saccadait et clignotait. Pour l'essayer : localStorage.vlad_plasma = "1" puis recharger.
+// OPTION, désactivée par défaut (effet gourmand en GPU) : localStorage.vlad_plasma = "1" puis recharger.
 const actifParDefaut = () => { try { return localStorage.getItem("vlad_plasma") === "1"; } catch { return false; } };
 
 // même dégradé que le body (styles.css) : linear-gradient(-45deg, #8691b3, #edeef3)
@@ -30,32 +29,6 @@ function peindreFond(cv) {
   const grad = g.createLinearGradient(cx + ux * d, cy + uy * d, cx - ux * d, cy - uy * d);
   grad.addColorStop(0, "#8691b3"); grad.addColorStop(1, "#edeef3");
   g.fillStyle = grad; g.fillRect(0, 0, w, h);
-}
-
-// La bibliothèque ne sait pas encore couper une surface dans une zone qui défile :
-// un widget à moitié sorti de sa colonne laissait une plaque de verre vide sous la
-// colonne. On découpe donc le CANEVAS aux contours des colonnes (en dehors : le fond
-// de la page, le même dégradé → découpe invisible). 24 px de marge sur les côtés
-// pour garder l'ombre et le reflet ; aucune marge en haut et en bas.
-function decoupeColonnes() {
-  const parts = [...document.querySelectorAll(".stage .col")].map((c) => {
-    const r = c.getBoundingClientRect(), m = 24;
-    return `M ${r.left - m} ${r.top} H ${r.right + m} V ${r.bottom} H ${r.left - m} Z`;
-  });
-  return parts.length ? `path('${parts.join(" ")}')` : "none";
-}
-
-function CanevasDecoupe() {
-  const [clip, setClip] = useState("none");
-  useEffect(() => {
-    const maj = () => setClip(decoupeColonnes());
-    maj();
-    const ro = new ResizeObserver(maj);
-    document.querySelectorAll(".stage, .stage .col").forEach((el) => ro.observe(el));
-    window.addEventListener("resize", maj);
-    return () => { ro.disconnect(); window.removeEventListener("resize", maj); };
-  }, []);
-  return <PlasmaCanvas zIndex={-1} style={{ clipPath: clip }} />;
 }
 
 // Les cartes ne deviennent du verre QUE si le moteur tourne vraiment ;
@@ -93,15 +66,15 @@ export default function PlasmaFond({ children }) {
   return (
     <Filet secours={children}>
     <PlasmaProvider
-      theme="light" background={fond} ground="clear" radius={14}   // « clear » : seulement les panneaux, le vrai fond de VLAD reste visible autour
+      theme="light" background={fond} radius={14}
       tint="#ffffff" opacity={0.38} frost={0.35} elevation={0.22}
       blend={10}               // < écart de 14 px entre widgets : chacun reste distinct
       stretch={0}              // le verre suit exactement le widget (sinon il traîne au défilement)
       viscosity={0.6} grain={0} pointerDrop={false} ambientDrops={false}
       rimColor="#4b6398" rim={0.55} shimmer={0.5} glow={0.6}
       maxSurfaces={20}         // au-delà de 20 widgets, des panneaux perdraient leur verre
-      canvas={false}>
-      <CanevasDecoupe />
+      quality={1}              // résolution du rendu plafonnée (écran Retina : moins de charge GPU)
+    >
       <SiSupporte>{children}</SiSupporte>
     </PlasmaProvider>
     </Filet>
