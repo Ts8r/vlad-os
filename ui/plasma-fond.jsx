@@ -6,8 +6,12 @@
      (WebGL ne lit pas le DOM : on lui donne l'image de ce qu'il y a derrière).
    · Désactivable : localStorage « vlad_plasma » = "0".
    ═══════════════════════════════════════════════════════════════ */
-import React, { useEffect, useState } from "react";
-import { PlasmaProvider, PlasmaCanvas } from "@cruxgarden/plasma-ui";
+import React, { Component, useEffect, useState } from "react";
+import { PlasmaProvider, PlasmaCanvas, usePlasmaRuntime } from "@cruxgarden/plasma-ui";
+
+// Une mise à jour « à chaud » de ce module laissait le moteur WebGL incohérent
+// (canevas d'avant, panneaux d'après → cartes transparentes) : on recharge la page.
+if (import.meta.hot) import.meta.hot.decline();
 import { PlasmaCtx } from "./widgets/_base.jsx";
 
 const ORDI = "(min-width: 1021px) and (pointer: fine)";
@@ -52,6 +56,19 @@ function CanevasDecoupe() {
   return <PlasmaCanvas zIndex={-1} style={{ clipPath: clip }} />;
 }
 
+// Les cartes ne deviennent du verre QUE si le moteur tourne vraiment ;
+// sinon elles gardent leur fond CSS (jamais de widget transparent).
+function SiSupporte({ children }) {
+  const { supported } = usePlasmaRuntime();
+  return <PlasmaCtx.Provider value={!!supported}>{children}</PlasmaCtx.Provider>;
+}
+class Filet extends Component {
+  state = { panne: false };
+  static getDerivedStateFromError() { return { panne: true }; }
+  componentDidCatch(e) { console.warn("plasma-ui en panne, retour aux cartes classiques :", e); }
+  render() { return this.state.panne ? <PlasmaCtx.Provider value={false}>{this.props.secours}</PlasmaCtx.Provider> : this.props.children; }
+}
+
 export default function PlasmaFond({ children }) {
   const [ordi, setOrdi] = useState(() => window.matchMedia(ORDI).matches);
   const [fond, setFond] = useState(null);
@@ -72,6 +89,7 @@ export default function PlasmaFond({ children }) {
 
   if (!ordi || !fond || !actifParDefaut()) return <PlasmaCtx.Provider value={false}>{children}</PlasmaCtx.Provider>;
   return (
+    <Filet secours={children}>
     <PlasmaProvider
       theme="light" background={fond} ground="clear" radius={14}   // « clear » : seulement les panneaux, le vrai fond de VLAD reste visible autour
       tint="#ffffff" opacity={0.38} frost={0.35} elevation={0.22}
@@ -82,7 +100,8 @@ export default function PlasmaFond({ children }) {
       maxSurfaces={20}         // au-delà de 20 widgets, des panneaux perdraient leur verre
       canvas={false}>
       <CanevasDecoupe />
-      <PlasmaCtx.Provider value={true}>{children}</PlasmaCtx.Provider>
+      <SiSupporte>{children}</SiSupporte>
     </PlasmaProvider>
+    </Filet>
   );
 }
