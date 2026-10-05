@@ -4,7 +4,7 @@
      sur mobile → l'iPhone garde les cartes CSS habituelles.
    · Le fond réfracté est le dégradé porcelaine de VLAD, peint dans un canevas
      (WebGL ne lit pas le DOM : on lui donne l'image de ce qu'il y a derrière).
-   · Désactivable : localStorage « vlad_plasma » = "0".
+   · OPTION désactivée par défaut — l'activer : localStorage « vlad_plasma » = "1".
    ═══════════════════════════════════════════════════════════════ */
 import React, { Component, useEffect, useState } from "react";
 import { PlasmaProvider, PlasmaCanvas, usePlasmaRuntime } from "@cruxgarden/plasma-ui";
@@ -15,7 +15,9 @@ if (import.meta.hot) import.meta.hot.decline();
 import { PlasmaCtx } from "./widgets/_base.jsx";
 
 const ORDI = "(min-width: 1021px) and (pointer: fine)";
-const actifParDefaut = () => { try { return localStorage.getItem("vlad_plasma") !== "0"; } catch { return true; } };
+// OPTION, désactivée par défaut : sur un portable (écran Retina, batterie), le rendu plein écran
+// saccadait et clignotait. Pour l'essayer : localStorage.vlad_plasma = "1" puis recharger.
+const actifParDefaut = () => { try { return localStorage.getItem("vlad_plasma") === "1"; } catch { return false; } };
 
 // même dégradé que le body (styles.css) : linear-gradient(-45deg, #8691b3, #edeef3)
 function peindreFond(cv) {
