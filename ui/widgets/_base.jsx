@@ -55,7 +55,16 @@ export function Fold({ id, title, extra, children, className = "", open: openCtl
   const board = useContext(BoardCtx), slot = useContext(SlotCtx), plasma = useContext(PlasmaCtx);
   const edit = board.editing && slot;
   const Carte = plasma ? Plasma : "div";
-  const plasmaProps = plasma ? { lean: 3, radius: 14 } : {};
+  // Plasma : le widget se déplace à la souris (par son en-tête : le contenu est marqué
+  // data-plasma-nodrag), s'aimante à la grille et aux voisins, fusionne au contact.
+  // Position mémorisée dans layout.json ; « Réaligner » (mode ⊞ WIDGETS) la remet à zéro.
+  const positions = board.config?.["plasma-pos"] || {};
+  const plasmaProps = plasma ? {
+    lean: 3, radius: 14,
+    draggable: !!slot && !board.editing,          // en mode édition : réorganisation classique
+    offset: (slot && positions[slot.id]) || { x: 0, y: 0 },
+    onDragEnd: (o) => slot && board.setConfig("plasma-pos", { ...positions, [slot.id]: { x: Math.round(o.x), y: Math.round(o.y) } }),
+  } : {};
   const drag = edit ? {
     draggable: true,
     onDragStart: (e) => { e.dataTransfer.setData("text/vlad-widget", slot.id); e.dataTransfer.effectAllowed = "move"; },
@@ -78,7 +87,7 @@ export function Fold({ id, title, extra, children, className = "", open: openCtl
           </>}
         </span>
       </h3>
-      {open && !edit && children}
+      {open && !edit && (plasma ? <div className="w-corps" data-plasma-nodrag="">{children}</div> : children)}
       {edit && <p className="dim w-drag">glisser pour déplacer</p>}
     </Carte>
   );

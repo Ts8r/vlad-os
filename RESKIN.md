@@ -35,7 +35,10 @@ Les pages Agenda (avec ses onglets de suivi) et Vault ont leur feuille (`agenda.
 
 ### Le verre liquide des widgets
 
-Sur ordinateur, les widgets sont des panneaux de verre liquide ([plasma-ui](https://github.com/CruxGarden/plasma-ui), WebGL) ; sur mobile, ce sont des cartes classiques. Réglages (teinte, givre, reflet) : `ui/plasma-fond.jsx`. C'est une **option désactivée par défaut** : l'effet redessine tout l'écran à chaque image et peut saccader sur un portable (grand écran Retina, batterie). Pour l'essayer, dans la console du navigateur : `localStorage.vlad_plasma = "1"` puis recharger ; `"0"` pour revenir aux cartes classiques.
+Sur ordinateur, les widgets sont des panneaux de verre liquide ([plasma-ui](https://github.com/CruxGarden/plasma-ui), WebGL) ; sur mobile, ce sont des cartes classiques.
+- **Déplacer un widget** : attrape-le par son titre et pose-le où tu veux. Il s'aimante à la grille et à ses voisins, fusionne au contact d'un autre, et sa position est retenue. En mode ⊞ WIDGETS, « Réaligner » remet tout en place.
+- **Réglages** (teinte, givre, reflet) : `ui/plasma-fond.jsx`.
+- **Revenir aux cartes classiques** : dans la console du navigateur, `localStorage.vlad_plasma = "0"` puis recharger.
 
 ## 4. La voix
 

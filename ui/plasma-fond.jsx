@@ -4,7 +4,7 @@
      sur mobile → l'iPhone garde les cartes CSS habituelles.
    · Le fond réfracté est le dégradé porcelaine de VLAD, peint dans un canevas
      (WebGL ne lit pas le DOM : on lui donne l'image de ce qu'il y a derrière).
-   · OPTION désactivée par défaut — l'activer : localStorage « vlad_plasma » = "1".
+   · Désactivable : localStorage « vlad_plasma » = "0".
    ═══════════════════════════════════════════════════════════════ */
 import React, { Component, useEffect, useState } from "react";
 import { PlasmaProvider, usePlasmaRuntime } from "@cruxgarden/plasma-ui";
@@ -15,8 +15,9 @@ if (import.meta.hot) import.meta.hot.decline();
 import { PlasmaCtx } from "./widgets/_base.jsx";
 
 const ORDI = "(min-width: 1021px) and (pointer: fine)";
-// OPTION, désactivée par défaut (effet gourmand en GPU) : localStorage.vlad_plasma = "1" puis recharger.
-const actifParDefaut = () => { try { return localStorage.getItem("vlad_plasma") === "1"; } catch { return false; } };
+// Activé par défaut ; pour revenir aux cartes classiques : localStorage.vlad_plasma = "0" puis recharger.
+// (La découpe du canevas aux colonnes + ground="clear" faisait saccader et griser le rendu : retirées.)
+const actifParDefaut = () => { try { return localStorage.getItem("vlad_plasma") !== "0"; } catch { return true; } };
 
 // même dégradé que le body (styles.css) : linear-gradient(-45deg, #8691b3, #edeef3)
 function peindreFond(cv) {
@@ -35,6 +36,8 @@ function peindreFond(cv) {
 // sinon elles gardent leur fond CSS (jamais de widget transparent).
 function SiSupporte({ children }) {
   const { supported } = usePlasmaRuntime();
+  // colonnes sans défilement quand le verre est actif (sinon un widget déplacé hors de sa colonne serait coupé)
+  useEffect(() => { document.body.classList.toggle("plasma-on", !!supported); return () => document.body.classList.remove("plasma-on"); }, [supported]);
   return <PlasmaCtx.Provider value={!!supported}>{children}</PlasmaCtx.Provider>;
 }
 class Filet extends Component {
@@ -67,11 +70,11 @@ export default function PlasmaFond({ children }) {
     <Filet secours={children}>
     <PlasmaProvider
       theme="light" background={fond} radius={14}
-      tint="#ffffff" opacity={0.38} frost={0.35} elevation={0.22}
+      tint="#3f5488" opacity={0.14} frost={0.45} elevation={0.55}   // verre teinté bleu VLAD : se détache du fond porcelaine
       blend={10}               // < écart de 14 px entre widgets : chacun reste distinct
       stretch={0}              // le verre suit exactement le widget (sinon il traîne au défilement)
       viscosity={0.6} grain={0} pointerDrop={false} ambientDrops={false}
-      rimColor="#4b6398" rim={0.55} shimmer={0.5} glow={0.6}
+      rimColor="#4b6398" rim={1} rimWidth={1.3} edgeLine={1} shimmer={0.5} glow={0.8}
       maxSurfaces={20}         // au-delà de 20 widgets, des panneaux perdraient leur verre
       quality={1}              // résolution du rendu plafonnée (écran Retina : moins de charge GPU)
     >
