@@ -33,6 +33,10 @@ Le thème « porcelaine » est dans le bloc `:root` de `ui/styles.css` :
 
 Les pages Agenda (avec ses onglets de suivi) et Vault ont leur feuille (`agenda.css`, `progres.css`, `vault-overview.css`).
 
+### Le verre liquide des widgets
+
+Sur ordinateur, les widgets sont des panneaux de verre liquide ([plasma-ui](https://github.com/CruxGarden/plasma-ui), WebGL) ; sur mobile, ce sont des cartes classiques. Réglages (teinte, givre, reflet) : `ui/plasma-fond.jsx`. Pour revenir aux cartes classiques sur un ordinateur, dans la console du navigateur : `localStorage.vlad_plasma = "0"` puis recharger.
+
 ## 4. La voix
 
 Par ordre de préférence, le pont utilise : ElevenLabs (si `ELEVEN_KEY` + `ELEVEN_VOICE`), puis la voix Edge « Rémy », puis Kokoro `ff_siwis` (la seule voix française de Kokoro), puis les voix macOS. Précision de la transcription : `VLAD_WHISPER` (tiny → medium).

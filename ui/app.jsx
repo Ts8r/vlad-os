@@ -18,6 +18,7 @@ import VaultOverview from "./vault-overview.jsx";
 import AgendaPage from "./agenda.jsx";
 import { HudCtx, BoardCtx } from "./widgets/_base.jsx";
 import { useBoard, Colonne, Bibliotheque } from "./widget-board.jsx";
+import PlasmaFond from "./plasma-fond.jsx";   // widgets en panneaux liquides (ordinateur)
 import HorlogeAraignee from "./horloge.jsx";
 import "./styles.css";
 
@@ -427,7 +428,7 @@ function HUD() {
   if (agenda) return <><AgendaPage vueInitiale={agenda.vue} jourInitial={agenda.jour || null} onClose={() => { history.replaceState(null, "", " "); setAgenda(null); }} /></>;
 
   return (
-    <HudCtx.Provider value={hud}><BoardCtx.Provider value={board}>
+    <HudCtx.Provider value={hud}><BoardCtx.Provider value={board}><PlasmaFond>
     <div className={`stage tab-${mobTab} ${board.editing ? "editing" : ""}`}>
       <SessionAccess />
       <MiseAJour />
@@ -501,7 +502,7 @@ function HUD() {
       </footer>
     </div>
     {bibCol && <Bibliotheque board={board} col={bibCol} onClose={() => setBibCol(null)} />}
-    </BoardCtx.Provider></HudCtx.Provider>
+    </PlasmaFond></BoardCtx.Provider></HudCtx.Provider>
   );
 }
 

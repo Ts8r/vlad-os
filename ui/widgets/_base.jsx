@@ -7,6 +7,7 @@
    Il est découvert tout seul (ui/widgets/index.js) : rien à toucher dans app.jsx.
    ═══════════════════════════════════════════════════════════════ */
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { Plasma } from "@cruxgarden/plasma-ui";
 
 export const BRIDGE = "/api";   // même origine : proxy Vite en local, tunnel Cloudflare à distance
 
@@ -17,6 +18,8 @@ export const useHud = () => useContext(HudCtx);
 // Tableau : disposition + réglages par widget + mode édition (fourni par widget-board.jsx)
 export const BoardCtx = createContext({ editing: false, config: {}, setConfig: () => {} });
 export const SlotCtx = createContext(null);   // { id, col, idx } du widget rendu
+// true quand l'accueil est enveloppé par <PlasmaFond> (ordinateur) : les cartes deviennent du plasma
+export const PlasmaCtx = createContext(false);
 
 /* Réglages d'un widget (liste de flux, sites à surveiller…), stockés dans layout.json
    → identiques sur le Mac et l'iPhone. */
@@ -49,8 +52,10 @@ export function Fold({ id, title, extra, children, className = "", open: openCtl
   const [openLoc, setOpenLoc] = useState(() => localStorage.getItem("vlad_fold_" + id) !== "0");
   const open = openCtl ?? openLoc;
   const toggle = onToggle ?? (() => setOpenLoc((o) => { try { localStorage.setItem("vlad_fold_" + id, o ? "0" : "1"); } catch {} return !o; }));
-  const board = useContext(BoardCtx), slot = useContext(SlotCtx);
+  const board = useContext(BoardCtx), slot = useContext(SlotCtx), plasma = useContext(PlasmaCtx);
   const edit = board.editing && slot;
+  const Carte = plasma ? Plasma : "div";
+  const plasmaProps = plasma ? { lean: 3, radius: 14 } : {};
   const drag = edit ? {
     draggable: true,
     onDragStart: (e) => { e.dataTransfer.setData("text/vlad-widget", slot.id); e.dataTransfer.effectAllowed = "move"; },
@@ -58,7 +63,7 @@ export function Fold({ id, title, extra, children, className = "", open: openCtl
     onDrop: (e) => { e.preventDefault(); e.stopPropagation(); const w = e.dataTransfer.getData("text/vlad-widget"); if (w) board.placer(w, slot.col, slot.idx); },
   } : {};
   return (
-    <div className={`widget ${className} ${edit ? "w-editing" : ""}`} {...drag}>
+    <Carte className={`widget ${plasma ? "plasma" : ""} ${className} ${edit ? "w-editing" : ""}`} {...plasmaProps} {...drag}>
       <h3 className="w-head">
         <span className="w-titre">{title}</span>
         <span className="w-btns">
@@ -75,7 +80,7 @@ export function Fold({ id, title, extra, children, className = "", open: openCtl
       </h3>
       {open && !edit && children}
       {edit && <p className="dim w-drag">glisser pour déplacer</p>}
-    </div>
+    </Carte>
   );
 }
 

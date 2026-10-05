@@ -14,7 +14,7 @@ VLAD (*Virtual Logic Assistance Director*) listens, answers out loud, reads your
 |---|---|
 | 🎙️ **Voice, locally** | Speech-to-text with Whisper and text-to-speech with Kokoro / Edge / macOS voices. Your audio never leaves the machine. |
 | 🧠 **Claude Code as the brain** | One persistent `claude` process, trimmed to the bone (~1 s to first token, cents per day). Read-only on your files; anything that changes something needs a spoken "confirm". |
-| 🧩 **Widget library** | Pick, remove and arrange widgets on the home screen — layout shared between your Mac and your phone. Weather, Pomodoro, quick note, site status, RSS, GitHub, calendar, mail, system… |
+| 🧩 **Widget library** | Pick, remove and arrange widgets on the home screen — layout shared between your Mac and your phone. On desktop they are liquid-glass panels rendered in WebGL ([plasma-ui](https://github.com/CruxGarden/plasma-ui), MIT). Weather, Pomodoro, quick note, site status, RSS, GitHub, calendar, mail, system… |
 | 📅 **Agenda** | Month and day views from your calendars, a customizable typical day, plus weekly tasks, monthly habits, mood check-in and a Sunday report. VLAD can add or tick tasks by voice. |
 | 🗂️ **Vault** | Your notes as an Obsidian-style vault, drawn as a neural graph. VLAD searches it before answering. |
 | 📱 **Everywhere** | Installable as a PWA on iPhone, plus an optional Telegram bot (morning brief, meeting reminders, evening check-in). |
