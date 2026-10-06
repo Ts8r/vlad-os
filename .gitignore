@@ -54,3 +54,8 @@ vault/inbox/*
 
 # État des mises à jour
 .maj.json
+
+# Cours (supports déposés, fiches, progression des QCM)
+cours/
+cours.json
+.cours-progression.json

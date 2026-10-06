@@ -16,6 +16,7 @@ import VLADEye from "./vlad-eye.jsx";
 import WaveLine from "./wave-line.jsx";
 import VaultOverview from "./vault-overview.jsx";
 import AgendaPage from "./agenda.jsx";
+import PageCours from "./cours.jsx";
 import { HudCtx, BoardCtx } from "./widgets/_base.jsx";
 import { useBoard, Colonne, Bibliotheque } from "./widget-board.jsx";
 import PlasmaFond from "./plasma-fond.jsx";   // widgets en panneaux liquides (ordinateur)
@@ -115,6 +116,8 @@ function HUD() {
   const [vaultOpen, setVaultOpen] = useState(false);
   // page Agenda : null (fermée) ou { vue, jour }. Liens profonds : #agenda, #agenda/semaine,
   // #agenda/2026-10-05 ; les anciens #cap et #progres ouvrent l'onglet Semaine (ou #cap/habitudes…).
+  // page Cours : null (fermée) ou "cours" / "revision" — liens #cours, #cours/revision
+  const [pageCours, setPageCours] = useState(() => { const [p, a] = location.hash.slice(1).split("/"); return p === "cours" ? (a || "cours") : null; });
   const [agenda, setAgenda] = useState(() => {
     const [page, arg] = location.hash.slice(1).split("/");
     if (page === "agenda") return /^\d{4}-\d{2}-\d{2}$/.test(arg || "") ? { vue: "mois", jour: arg } : { vue: arg || "mois" };
@@ -421,11 +424,12 @@ function HUD() {
 
   const board = useBoard();
   const [bibCol, setBibCol] = useState(null);   // colonne visée par la bibliothèque ouverte
-  const ouvrirPage = (p) => p === "agenda" ? setAgenda({ vue: "mois" }) : ["cap", "semaine", "habitudes", "rapport"].includes(p) ? setAgenda({ vue: p === "cap" ? "semaine" : p }) : p === "vault" ? setVaultOpen(true) : null;
+  const ouvrirPage = (p) => p === "cours" || p === "revision" ? setPageCours(p) : p === "agenda" ? setAgenda({ vue: "mois" }) : ["cap", "semaine", "habitudes", "rapport"].includes(p) ? setAgenda({ vue: p === "cap" ? "semaine" : p }) : p === "vault" ? setVaultOpen(true) : null;
   const hud = { ask, setDraft, ouvrirPage, messages, logOpen, toggleLog, clearLog, logRef };
 
   if (vaultOpen) return <><VaultOverview onClose={() => setVaultOpen(false)} /></>;   // horloge gravée sur toutes les pages sauf l'accueil
   if (agenda) return <><AgendaPage vueInitiale={agenda.vue} jourInitial={agenda.jour || null} onClose={() => { history.replaceState(null, "", " "); setAgenda(null); }} /></>;
+  if (pageCours) return <><PageCours vueInitiale={pageCours} onClose={() => { history.replaceState(null, "", " "); setPageCours(null); }} /></>;
 
   return (
     <HudCtx.Provider value={hud}><BoardCtx.Provider value={board}><PlasmaFond>
@@ -439,6 +443,7 @@ function HUD() {
         <div className="topbtns">
           <button className="vault-btn" onClick={() => setAgendaOpen(true)} title="Agenda — mois, journées, semaine, habitudes, rapport">◉ AGENDA</button>
           <button className="vault-btn" onClick={() => setVaultOpen(true)} title="Vault — graphe neuronal">✺ VAULT</button>
+          <button className="vault-btn" onClick={() => setPageCours("cours")} title="Cours — supports lus par VLAD et révision par QCM">◈ COURS</button>
           <button className={`vault-btn ${board.editing ? "on" : ""}`} onClick={() => board.setEditing((e) => !e)}
             title="Choisir et ranger les widgets de l'accueil">{board.editing ? "✓ TERMINÉ" : "⊞ WIDGETS"}</button>
         </div>

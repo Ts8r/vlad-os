@@ -27,7 +27,12 @@ const widgetsApi = require("./widgets-api.js");
   const synchro = () => { try { if (vi.etat().derniere) { const r = vi.synchroniser(); console.log("   vault : fiches-index à jour", JSON.stringify(r.stats)); } } catch (e) { console.error("   vault import :", e.message); } };
   setTimeout(synchro, 30000); setInterval(synchro, 6 * 3600_000);
 }
-require("./maj.js").planifier();   // mises à jour de l'app depuis GitHub (au moins une vérification par mois)   // bibliothèque de widgets : disposition, RSS, sites, GitHub, notes
+require("./maj.js").planifier();
+const lireCours = () => cours.lireNouveaux(ask, (c) => {
+  coursSync();
+  if (typeof tgAlert === "function") tgAlert("cours-" + c.id, `📚 Cours lu : ${c.titre} — ${c.qcm.length} questions de QCM prêtes.`);
+});
+setTimeout(lireCours, 60000); setInterval(lireCours, 120000);   // mises à jour de l'app depuis GitHub (au moins une vérification par mois)   // bibliothèque de widgets : disposition, RSS, sites, GitHub, notes
 // Filets de crash : plus JAMAIS de mort silencieuse (le 06/08 le pont est tombé
 // sans laisser de trace — le log avait été écrasé par la relance suivante).
 // Trace datée persistante, puis launchd (KeepAlive) relance le pont en ~1 s.
@@ -193,6 +198,11 @@ try { fs.mkdirSync(UPLOADS, { recursive: true }); } catch {}
 // et ÉCRIT via le marqueur [[TACHE: …]] exécuté sans confirmation (jamais de
 // suppression par ce canal : supprimer = mode action, donc confirmation vocale).
 const tracker = require("./tracker.js");
+// ── COURS : supports lus une fois (résumé, notions, QCM), révision au fil de l'année ──
+const cours = require("./cours.js");
+const COURS_OUT = "/tmp/vlad_cours.json";
+function coursSync() { try { fs.writeFileSync(COURS_OUT, JSON.stringify(cours.snapshot(), null, 1)); } catch {} }
+coursSync();
 const TRACKER_OUT = "/tmp/vlad_tracker.json";
 function trackerSync() { try { fs.writeFileSync(TRACKER_OUT, JSON.stringify(tracker.snapshot(), null, 1)); } catch {} }
 trackerSync();
@@ -302,6 +312,9 @@ const PERSONA =
   "Les habitudes peuvent être rangées en groupes ; celles marquées jours ouvrés ne comptent pas le week-end. " +
   "Plusieurs marqueurs possibles. Exemple : « C'est noté pour jeudi. [[TACHE: add|jeudi|Appeler Martin]] ». " +
   "SUPPRIMER une tâche reste une action confirmée : [[ACTION: exécute node " + path.join(ROOT, "voice", "tracker.js") + " del \"<mots de la tâche>\"]]. " +
+  "COURS : le fichier " + COURS_OUT + " résume les derniers cours lus (titre, matière, résumé, notions, points à savoir, " +
+  "chemin du support). Lis-le pour « qu'est-ce qu'on a vu en cours », « explique-moi la notion X », « révise-moi tel cours » : " +
+  "tu peux l'interroger à l'oral, une question à la fois, à partir des notions et des points à savoir. Les QCM se font dans la page Cours du HUD. " +
   "BASE CLIENTS : le fichier " + path.join(ROOT, "clients.json") + ", s'il existe, est la base clients " +
   "(nom, contact, statut, projets, notes) — lis-le pour toute question client ; " +
   "ajouter ou mettre à jour une fiche = MODE ACTION (édition de ce JSON, structure conservée). " +
@@ -1055,6 +1068,20 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.method === "POST" && url === "/rapport") { rapportSemaine(true); return send(res, 200, { ok: true, note: "rapport en cours → Telegram + journal" }); }
   if (req.method === "GET" && url === "/rapport") { try { return send(res, 200, JSON.parse(fs.readFileSync(path.join(ROOT, ".rapport.json"), "utf8"))); } catch { return send(res, 200, { at: null, texte: "" }); } }
+  // ── COURS : liste, dépôt, QCM ──
+  if (url === "/cours" || url.startsWith("/cours/")) {
+    const q = new URL(req.url, "http://x").searchParams;
+    try {
+      if (req.method === "GET" && url === "/cours") return send(res, 200, cours.vue());
+      if (req.method === "GET" && url === "/cours/tirage") return send(res, 200, { questions: cours.tirage({ n: +q.get("n") || 10, cours: q.get("cours") || null, mode: q.get("mode") || "melange" }) });
+      const b = await body(req);
+      if (req.method === "POST" && url === "/cours/deposer") { const f = cours.deposer(b.name, b.dataB64); lireCours(); return send(res, 200, { ok: true, fichier: f, note: "lecture en cours (30 à 90 s)" }); }
+      if (req.method === "POST" && url === "/cours/supprimer") { cours.supprimer(b.id); coursSync(); return send(res, 200, { ok: true }); }
+      if (req.method === "POST" && url === "/cours/qcm") { const c = await cours.regenererQcm(b.id, ask); coursSync(); return send(res, 200, { ok: true, questions: c.qcm.length }); }
+      if (req.method === "POST" && url === "/cours/resultat") return send(res, 200, cours.resultat(b));
+      return send(res, 404, { error: "inconnu" });
+    } catch (e) { return send(res, 400, { error: String(e.message || e) }); }
+  }
   // ── SUIVI (onglets de l'Agenda + widget) : lecture complète, écritures unitaires ──
   if (req.method === "GET" && url === "/tracker") { const t = tracker.materialiser(); return send(res, 200, { ...t, today: tracker.today(), journee: tracker.journee(t) }); }
   if (req.method === "POST" && url.startsWith("/tracker/")) {
