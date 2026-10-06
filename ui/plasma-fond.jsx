@@ -70,11 +70,12 @@ export default function PlasmaFond({ children }) {
     <Filet secours={children}>
     <PlasmaProvider
       theme="light" background={fond} radius={14}
-      tint="#3f5488" opacity={0.14} frost={0.45} elevation={0.55}   // verre teinté bleu VLAD : se détache du fond porcelaine
+      opacity={0} wash={0} frost={0} elevation={0.15}   // transparent au maximum : aucune teinte, aucun voile, aucun flou ; ombre à peine
       blend={10}               // < écart de 14 px entre widgets : chacun reste distinct
       stretch={0}              // le verre suit exactement le widget (sinon il traîne au défilement)
       viscosity={0.6} grain={0} pointerDrop={false} ambientDrops={false}
-      rimColor="#4b6398" rim={1} rimWidth={1.3} edgeLine={1} shimmer={0.5} glow={0.8}
+      rim={0} shimmer={0} highlight={0} glow={0}   // mat : ni liseré irisé, ni reflet qui dérive, ni reflet sous la souris, ni halo
+      edgeLine={1}             // seul un contour fin et net dessine le bord
       maxSurfaces={20}         // au-delà de 20 widgets, des panneaux perdraient leur verre
       quality={1}              // résolution du rendu plafonnée (écran Retina : moins de charge GPU)
     >
