@@ -32,7 +32,49 @@ const lireCours = () => cours.lireNouveaux(ask, (c) => {
   coursSync();
   if (typeof tgAlert === "function") tgAlert("cours-" + c.id, `📚 Cours lu : ${c.titre} — ${c.qcm.length} questions de QCM prêtes.`);
 });
-setTimeout(lireCours, 60000); setInterval(lireCours, 120000);   // mises à jour de l'app depuis GitHub (au moins une vérification par mois)   // bibliothèque de widgets : disposition, RSS, sites, GitHub, notes
+setTimeout(lireCours, 60000); setInterval(lireCours, 120000);
+
+// ── GOOGLE CLASSROOM + DRIVE (facultatif, OAuth lecture seule) : toutes les 30 min, les devoirs
+// deviennent des tâches de l'Agenda à leur échéance, les supports sont téléchargés dans cours/
+// puis lus comme un dépôt (résumé + QCM). Actif dès que .google-oauth.json existe (bash vlad-google.sh).
+const GOOGLE_TOKENS = path.join(__dirname, "..", ".google-oauth.json");   // (ROOT est défini plus bas)
+const CLASSROOM_SEEN = path.join(__dirname, "..", ".classroom-seen.json");
+let classroomOccupe = false;
+function classroomCycle() {
+  if (!fs.existsSync(GOOGLE_TOKENS) || classroomOccupe) return;
+  classroomOccupe = true;
+  const p = spawn(PYTHON, [path.join(__dirname, "classroom-sync.py"), "sync"], { env: process.env, stdio: ["ignore", "pipe", "pipe"] });
+  let out = "", err = ""; p.stdout.on("data", (d) => (out += d)); p.stderr.on("data", (d) => (err += d));
+  p.on("close", (code) => {
+    classroomOccupe = false;
+    let d; try { d = JSON.parse(out.trim().split("\n").pop() || "{}"); } catch { return console.error("   [classroom] sortie illisible", err.slice(-160)); }
+    if (d.error) {
+      console.error("   [classroom]", d.error);
+      if (code === 2 && typeof tgAlert === "function") tgAlert("gauth", "Mon accès à Google Classroom a expiré : lance « bash vlad-google.sh » dans le dossier de VLAD et valide dans le navigateur.");
+      return;
+    }
+    let vus = {}; try { vus = JSON.parse(fs.readFileSync(CLASSROOM_SEEN, "utf8")); } catch {}
+    const aujourdhui = tracker.today();
+    let n = 0;
+    for (const a of d.assignments || []) {
+      if (vus[a.id]) continue;
+      vus[a.id] = Date.now();
+      // devoirs d'anciens cours restés « actifs » : déjà échus, ou sans échéance ni activité depuis 45 j
+      const perime = (a.due && a.due < aujourdhui) || (!a.due && a.updated && Date.now() - Date.parse(a.updated) > 45 * 24 * 3600 * 1000);
+      if (perime) continue;
+      try { tracker.addTask(a.title + (a.course ? " — " + a.course : ""), a.due || aujourdhui, { url: a.link || undefined, source: "classroom" }); n++; } catch {}
+    }
+    try { fs.writeFileSync(CLASSROOM_SEEN, JSON.stringify(vus)); } catch {}
+    // matière de chaque support = nom du cours Classroom
+    const carte = {};
+    for (const it of [...(d.assignments || []), ...(d.materials || [])]) for (const f of it.files || []) carte[f] = it.course || "Cours";
+    if (Object.keys(carte).length) cours.noterMatieres(carte);
+    if (n) { trackerSync(); if (typeof tgAlert === "function") tgAlert("classroom-" + Date.now(), n + " nouveau(x) devoir(s) Classroom ajouté(s) à l'Agenda."); }
+    if ((d.downloaded || []).length) { console.log("   [classroom]", d.downloaded.length, "support(s) téléchargé(s)"); lireCours(); }
+    console.log("   [classroom] sync :", (d.courses || []).length, "cours ·", (d.assignments || []).length, "devoirs ·", n, "nouveaux");
+  });
+}
+setTimeout(classroomCycle, 50000); setInterval(classroomCycle, 30 * 60 * 1000);   // mises à jour de l'app depuis GitHub (au moins une vérification par mois)   // bibliothèque de widgets : disposition, RSS, sites, GitHub, notes
 // Filets de crash : plus JAMAIS de mort silencieuse (le 06/08 le pont est tombé
 // sans laisser de trace — le log avait été écrasé par la relance suivante).
 // Trace datée persistante, puis launchd (KeepAlive) relance le pont en ~1 s.
@@ -1068,6 +1110,7 @@ const server = http.createServer(async (req, res) => {
   }
   if (req.method === "POST" && url === "/rapport") { rapportSemaine(true); return send(res, 200, { ok: true, note: "rapport en cours → Telegram + journal" }); }
   if (req.method === "GET" && url === "/rapport") { try { return send(res, 200, JSON.parse(fs.readFileSync(path.join(ROOT, ".rapport.json"), "utf8"))); } catch { return send(res, 200, { at: null, texte: "" }); } }
+  if (req.method === "POST" && url === "/classroom/sync") { classroomCycle(); return send(res, 200, { ok: true, note: fs.existsSync(GOOGLE_TOKENS) ? "synchronisation lancée" : "Google non branché : lance bash vlad-google.sh" }); }
   // ── COURS : liste, dépôt, QCM ──
   if (url === "/cours" || url.startsWith("/cours/")) {
     const q = new URL(req.url, "http://x").searchParams;

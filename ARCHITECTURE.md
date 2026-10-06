@@ -44,6 +44,7 @@ Deux processus locaux et des fichiers : c'est tout.
 | `ui/vault-overview.jsx` | Page **Vault** : graphe des notes |
 | `voice/vlad-server.js` | Le pont : HTTP, voix, cerveau, Telegram, tâches planifiées |
 | `voice/widgets-api.js` | Routes des widgets : disposition, RSS, sites, GitHub, notes |
+| `voice/classroom-sync.py` | Google Classroom + Drive (OAuth, lecture seule) : devoirs et supports, toutes les 30 min |
 | `voice/cours.js` | Lecture des cours (résumé, notions, QCM), tirage et progression des révisions |
 | `voice/tracker.js` | Tâches, habitudes, check-in (aussi utilisable en CLI) |
 | `voice/vault-data.js` | Construit le graphe du Vault |

@@ -41,6 +41,14 @@ const qcmPropre = (q) => (Array.isArray(q) ? q : [])
   .filter((x) => x && x.q && Array.isArray(x.choix) && x.choix.length >= 2 && Number.isInteger(+x.bonne) && +x.bonne < x.choix.length)
   .slice(0, 15).map((x, i) => ({ id: i, q: String(x.q), choix: x.choix.map(String), bonne: +x.bonne, explication: String(x.explication || "") }));
 
+// Matière connue par la synchro Classroom (cours/.matieres.json : fichier → nom du cours)
+function matiereClassroom(nom) { try { return JSON.parse(fs.readFileSync(path.join(DIR, ".matieres.json"), "utf8"))[nom] || null; } catch { return null; } }
+function noterMatieres(carte) {
+  const f = path.join(DIR, ".matieres.json");
+  let m = {}; try { m = JSON.parse(fs.readFileSync(f, "utf8")); } catch {}
+  fs.writeFileSync(f, JSON.stringify({ ...m, ...carte }, null, 1));
+}
+
 // Lecture d'un support (voie document du pont : ask(texte, voix, silencieux, fichiers))
 async function ingest(fichier, ask, source = "dépôt") {
   const nom = path.basename(fichier);
@@ -51,7 +59,7 @@ async function ingest(fichier, ask, source = "dépôt") {
   const cours = {
     id: slug(nom.replace(EXT, "")) + "-" + Date.now().toString(36),
     fichier: nom, source, ajoute: Date.now(),
-    titre: j.titre || nom.replace(EXT, ""), matiere: j.matiere || "Autre",
+    titre: j.titre || nom.replace(EXT, ""), matiere: matiereClassroom(nom) || j.matiere || "Autre",
     resume: j.resume || (r.response || "").slice(0, 1500),
     notions: j.notions || [], aSavoir: j.aSavoir || [], qcm: qcmPropre(j.qcm),
   };
@@ -140,4 +148,4 @@ const snapshot = () => load().cours.slice(0, 12).map((c) => ({
   resume: c.resume, notions: c.notions.slice(0, 10), aSavoir: c.aSavoir.slice(0, 10), questions: c.qcm.length,
 }));
 
-module.exports = { DIR, load, ingest, regenererQcm, lireNouveaux, deposer, supprimer, tirage, resultat, stats, vue, snapshot };
+module.exports = { DIR, noterMatieres, load, ingest, regenererQcm, lireNouveaux, deposer, supprimer, tirage, resultat, stats, vue, snapshot };
