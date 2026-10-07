@@ -6,6 +6,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import { HorlogeSegments } from "./horloge-segments.jsx";
 import "./progres.css";
 import "./cours.css";
+import BranchedMenu from "./BranchedMenu.jsx";   // React Bits : arbre animé (matières → cours)
+import { Book02Icon, Alert02Icon } from "@hugeicons/core-free-icons";
 
 const BRIDGE = "/api";
 const post = (p, o) => fetch(BRIDGE + p, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(o) }).then((r) => r.json());
@@ -25,7 +27,15 @@ function Cours({ d, recharger, reviser }) {
     recharger();
   };
   const stat = (id) => (d.parCours || []).find((s) => s.id === id) || { total: 0, maitrisees: 0, aRevoir: 0 };
+  // arbre : une branche par matière, ses cours en feuilles (React Bits · BranchedMenu)
   const matieres = [...new Set(d.cours.map((c) => c.matiere || "Autre"))];
+  const sections = matieres.map((m) => ({
+    label: m,
+    children: d.cours.filter((c) => (c.matiere || "Autre") === m).map((c) => ({ value: c.id, label: c.titre, icon: stat(c.id).aRevoir ? Alert02Icon : Book02Icon })),
+  }));
+  const c = d.cours.find((x) => x.id === ouvert) || d.cours[0];
+  const brancheOuverte = Math.max(0, sections.findIndex((sc) => sc.children.some((k) => k.value === c?.id)));
+  const s = c ? stat(c.id) : null, pct = s?.total ? Math.round((s.maitrisees / s.total) * 100) : 0;
   return (
     <>
       <div className={`pg-card co-depot ${survol ? "on" : ""}`}
@@ -39,36 +49,33 @@ function Cours({ d, recharger, reviser }) {
       </div>
       {msg && <p className="pg-mono co-msg">{msg}</p>}
       {d.cours.length === 0 && <p className="pg-empty">Aucun cours pour l'instant. Dépose ton premier support ci-dessus.</p>}
-      {matieres.map((m) => (
-        <section key={m} className="co-matiere">
-          <p className="pg-h">{m}</p>
-          {d.cours.filter((c) => (c.matiere || "Autre") === m).map((c) => {
-            const s = stat(c.id), pct = s.total ? Math.round((s.maitrisees / s.total) * 100) : 0;
-            return (
-              <div key={c.id} className={`pg-card co-carte ${ouvert === c.id ? "ouvert" : ""}`}>
-                <div className="co-tete" onClick={() => setOuvert(ouvert === c.id ? null : c.id)}>
-                  <div className="co-titre"><b>{c.titre}</b><span className="pg-mono">{date(c.ajoute)} · {c.qcm.length} questions{s.aRevoir ? ` · ${s.aRevoir} à revoir` : ""}</span></div>
-                  <div className="co-maitrise" title={`${s.maitrisees} / ${s.total} questions maîtrisées`}><i style={{ width: pct + "%" }} /></div>
-                </div>
-                {ouvert === c.id && (
-                  <div className="co-corps">
-                    <p className="pg-text">{c.resume}</p>
-                    {c.notions.length > 0 && <><p className="pg-h">Notions</p><ul className="co-liste">{c.notions.map((n, i) => <li key={i}>{n}</li>)}</ul></>}
-                    {c.aSavoir.length > 0 && <><p className="pg-h">À savoir</p><ul className="co-liste">{c.aSavoir.map((n, i) => <li key={i}>{n}</li>)}</ul></>}
-                    <div className="co-actions">
-                      {c.qcm.length > 0 && <button className="pg-btn" onClick={() => reviser(c.id)}>Réviser ce cours</button>}
-                      <button className="pg-btn" disabled={occupe === c.id} onClick={async () => { setOccupe(c.id); const r = await post("/cours/qcm", { id: c.id }); setMsg(r.error ? "QCM : " + r.error : `✓ nouveau QCM : ${r.questions} questions`); setOccupe(null); recharger(); }}>
-                        {occupe === c.id ? "VLAD rédige…" : c.qcm.length ? "Refaire le QCM" : "Générer le QCM"}
-                      </button>
-                      <button className="pg-lnk co-retirer" onClick={async () => { if (confirm("Retirer ce cours ? (le fichier reste dans le dossier cours/)")) { await post("/cours/supprimer", { id: c.id }); recharger(); } }}>retirer</button>
-                    </div>
-                  </div>
-                )}
+      {c && (
+        <div className="co-nav">
+          <div className="pg-card co-menu">
+            <BranchedMenu items={sections} defaultOpen={[brancheOuverte]} defaultActive={c.id} onSelect={(v) => setOuvert(v)}
+              color="#38406A" accentColor="#4b6398" lineColor="rgba(75,99,152,.28)" width={300}
+              rowHeight={34} indent={38} fontSize={13} />
+          </div>
+          <div className="pg-card co-fiche">
+            <div className="co-tete">
+              <div className="co-titre"><b>{c.titre}</b><span className="pg-mono">{c.matiere} · {date(c.ajoute)} · {c.qcm.length} questions{s.aRevoir ? ` · ${s.aRevoir} à revoir` : ""}</span></div>
+              <div className="co-maitrise" title={`${s.maitrisees} / ${s.total} questions maîtrisées`}><i style={{ width: pct + "%" }} /></div>
+            </div>
+            <div className="co-corps">
+              <p className="pg-text">{c.resume}</p>
+              {c.notions.length > 0 && <><p className="pg-h">Notions</p><ul className="co-liste">{c.notions.map((n, i) => <li key={i}>{n}</li>)}</ul></>}
+              {c.aSavoir.length > 0 && <><p className="pg-h">À savoir</p><ul className="co-liste">{c.aSavoir.map((n, i) => <li key={i}>{n}</li>)}</ul></>}
+              <div className="co-actions">
+                {c.qcm.length > 0 && <button className="pg-btn" onClick={() => reviser(c.id)}>Réviser ce cours</button>}
+                <button className="pg-btn" disabled={occupe === c.id} onClick={async () => { setOccupe(c.id); const r = await post("/cours/qcm", { id: c.id }); setMsg(r.error ? "QCM : " + r.error : `✓ nouveau QCM : ${r.questions} questions`); setOccupe(null); recharger(); }}>
+                  {occupe === c.id ? "VLAD rédige…" : c.qcm.length ? "Refaire le QCM" : "Générer le QCM"}
+                </button>
+                <button className="pg-lnk co-retirer" onClick={async () => { if (confirm("Retirer ce cours ? (le fichier reste dans le dossier cours/)")) { await post("/cours/supprimer", { id: c.id }); setOuvert(null); recharger(); } }}>retirer</button>
               </div>
-            );
-          })}
-        </section>
-      ))}
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

@@ -93,9 +93,6 @@ export function Colonne({ board, col, className, onAjouter }) {
         );
       })}
       {board.editing && <button className="w-ajout" onClick={() => onAjouter(col)}>+ Ajouter un widget</button>}
-      {board.editing && col === "right" && Object.keys(board.config["plasma-pos"] || {}).length > 0 &&
-        <button className="w-ajout" title="Remettre chaque widget à sa place dans sa colonne"
-          onClick={() => { board.setConfig("plasma-pos", {}); setTimeout(() => location.reload(), 600); }}>↺ Réaligner les widgets déplacés</button>}
     </aside>
   );
 }

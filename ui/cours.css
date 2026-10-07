@@ -40,3 +40,14 @@
   .co-maitrise { width: 64px; }
   .co-question { font-size: 16px; }
 }
+
+/* arbre des cours (BranchedMenu) à gauche, fiche du cours à droite */
+.co-nav { display: grid; grid-template-columns: minmax(240px, 320px) 1fr; gap: 14px; align-items: start; }
+.co-menu { position: sticky; top: 0; max-height: calc(100vh - 140px); overflow-y: auto; padding: 14px 12px; }
+.co-menu .branched-menu { max-width: 100%; width: 100%; }
+.co-menu .branched-menu__label { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.co-menu .branched-menu__head { font-family: var(--mono); font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase; }
+.co-fiche { padding: 0; overflow: hidden; min-width: 0; }
+.co-fiche .co-tete { cursor: default; padding-top: 14px; }
+.co-fiche .co-corps { border-top: 1px solid rgba(75,99,152,.12); padding-top: 4px; }
+@media (max-width: 760px) { .co-nav { grid-template-columns: 1fr; } .co-menu { position: static; max-height: none; } }
